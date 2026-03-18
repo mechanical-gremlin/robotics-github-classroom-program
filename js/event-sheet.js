@@ -355,12 +355,12 @@ const EventSheet = (() => {
         case 'on_loop':
           lines.push(`# Repeat ${row.eventParam || 5} times`);
           lines.push(`for _ in range(${row.eventParam || 5}):`);
-          lines.push(actionLines.split('\n').map(l => l.replace(/^    /, '    ')).join('\n'));
+          lines.push(actionLines);
           break;
         case 'on_always':
           lines.push('# Loop forever');
           lines.push('while True:');
-          lines.push(actionLines.split('\n').map(l => l.replace(/^    /, '    ')).join('\n'));
+          lines.push(actionLines);
           break;
         case 'on_object_found':
           lines.push('# When object detected');

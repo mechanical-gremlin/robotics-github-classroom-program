@@ -404,7 +404,7 @@ const BlocklySetup = (() => {
     P['dobot_ai_color_detect']= () => ['robot.ai_detect_color()', P.ORDER_FUNCTION_CALL];
     P['dobot_ai_face_detect'] = () => ['robot.ai_detect_face()', P.ORDER_FUNCTION_CALL];
     P['dobot_ai_grab_detected'] = () => 'robot.ai_grab_detected()\n';
-    P['vex_drive_forward']   = (b) => `vex_drive(${P.valueToCode(b, 'DISTANCE', P.ORDER_NONE) || 12})\n`;
+    P['vex_drive_forward']   = (b) => `drive_forward(${P.valueToCode(b, 'DISTANCE', P.ORDER_NONE) || 12})\n`;
     P['vex_turn']            = (b) => {
       const dir = b.getFieldValue('DIRECTION');
       const deg = P.valueToCode(b, 'DEGREES', P.ORDER_NONE) || 90;

@@ -255,10 +255,12 @@ class DobotRobot:
             state: 'on' or 'off'
         """
         self._sim_log(f"light('{state}')")
-        # Dobot Magician has IO pins that can control lights
+        # Dobot Magician GPIO pins can be used for external lights
         if not self._sim and self._device:
-            val = 1 if state == 'on' else 0
-            # self._device.set_io_do(1, val)  # Pin 1
+            # IO control is firmware-dependent; log the intent
+            self._log(f"[IO] Light control requested: {state}")
+            # Uncomment and adapt for your specific Dobot firmware:
+            # self._device.set_io_do(1, 1 if state == 'on' else 0)
 
     def wait(self, seconds: float = 1):
         """Pause execution for *seconds* seconds."""

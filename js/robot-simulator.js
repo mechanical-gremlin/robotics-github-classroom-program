@@ -259,7 +259,8 @@ const RobotSimulator = (() => {
     },
     wait: async (seconds = 1) => {
       log(`⏳ Waiting ${seconds} second(s)...`, 'info');
-      await new Promise(r => setTimeout(r, Math.min(seconds * 500, 2000))); // Simulate shorter
+      // Cap at 2s and scale by 0.5x for faster visual feedback in simulator
+      await new Promise(r => setTimeout(r, Math.min(seconds * 500, 2000)));
       log('✅ Wait done', 'success');
     },
     beep: async () => {

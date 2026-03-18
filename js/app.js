@@ -252,11 +252,11 @@ const App = (() => {
   };
 
   const fileIcon = (path) => {
-    if (path.endsWith('.py')) return '🐍';
-    if (path.endsWith('.xml')) return '🧩';
-    if (path.endsWith('.json')) return '📋';
-    if (path.endsWith('.md')) return '📄';
-    if (path.endsWith('.txt')) return '📝';
+    if (path.endsWith('.py'))                           return '🐍';
+    if (path.endsWith('.xml'))                          return '🧩';
+    if (path.endsWith('.json'))                         return '📋';
+    if (path.endsWith('.md'))                           return '📄';
+    if (path.endsWith('.txt'))                          return '📝';
     if (path.endsWith('.vex') || path.endsWith('.v5python')) return '🎮';
     return '📄';
   };
@@ -426,6 +426,14 @@ const App = (() => {
     toast('Code Generated', 'Python code generated from your program', 'success');
   };
 
+  /* Normalize speed action IDs (set_speed_slow → set_speed, etc.) */
+  const normalizeCommandType = (id) => {
+    if (id === 'set_speed_slow' || id === 'set_speed_med' || id === 'set_speed_fast') {
+      return 'set_speed';
+    }
+    return id;
+  };
+
   const runInSimulator = () => {
     // Build command list from current editor
     let commands = [];
@@ -441,7 +449,7 @@ const App = (() => {
       const rows = JSON.parse(EventSheet.toJSON() || '[]');
       rows.forEach(row => {
         row.actions.forEach(action => {
-          commands.push({ type: action.id.replace('set_speed_slow','set_speed').replace('set_speed_med','set_speed').replace('set_speed_fast','set_speed'), args: action.param !== undefined ? [action.param] : [] });
+          commands.push({ type: normalizeCommandType(action.id), args: action.param !== undefined ? [action.param] : [] });
         });
       });
     }

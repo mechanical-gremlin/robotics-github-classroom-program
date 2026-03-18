@@ -8,6 +8,7 @@
 # ─── VEX V5 Python API ───────────────────────────────────────────────
 # This uses the standard VEX Python API available on VEX V5 brains.
 
+import math
 from vex import *
 
 brain = Brain()
@@ -16,7 +17,7 @@ right_motor = Motor(Ports.PORT2,  GearSetting.RATIO_18_1, True)
 
 def drive_forward(inches):
     """Drive the robot forward by the given number of inches."""
-    rotations = inches / (3.25 * 3.14159)  # Adjust for wheel diameter
+    rotations = inches / (3.25 * math.pi)  # Adjust for wheel diameter
     left_motor.spin_for(FORWARD, rotations, TURNS)
     right_motor.spin_for(FORWARD, rotations, TURNS)
     brain.screen.print(f"Drove forward {inches} inches")

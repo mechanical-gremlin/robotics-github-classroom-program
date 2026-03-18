@@ -634,8 +634,7 @@
     const logoutSettings = document.getElementById('logout-btn-settings');
     if (logoutSettings) {
       logoutSettings.addEventListener('click', () => {
-        if (confirm('Sign out?')) App.handleLogout?.();
-        else {
+        if (confirm('Sign out?')) {
           GitHubAPI.clearToken();
           location.reload();
         }

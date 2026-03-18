@@ -33,6 +33,15 @@ _SPEED_PRESETS = {
     'fast':   (300, 300),
 }
 
+# Joint-space movement mode for pydobot _set_ptp_cmd
+_MODE_MOVJ_ANGLE = 4
+
+# Infrared sensor detection threshold (mm)
+_IR_DETECTION_THRESHOLD_MM = 100
+
+# Default conveyor belt speed (mm/s)
+_DEFAULT_CONVEYOR_SPEED = 50
+
 
 class DobotRobot:
     """
@@ -207,7 +216,7 @@ class DobotRobot:
             try:
                 self._device._set_ptp_cmd(
                     float(j1), float(j2), float(j3), float(j4),
-                    mode=4, wait=True)  # mode 4 = MOVJ_ANGLE
+                    mode=_MODE_MOVJ_ANGLE, wait=True)
             except Exception:
                 self._log('[WARN] Joint angle move not supported by this firmware.')
 
@@ -362,7 +371,7 @@ class DobotRobot:
         """
         self._sim_log('infrared_detected()')
         dist = self.read_infrared()
-        return 0 < dist < 100  # object within 100 mm
+        return 0 < dist < _IR_DETECTION_THRESHOLD_MM
 
     # ── Conveyor Belt ─────────────────────────────────────────────────
 
@@ -405,8 +414,8 @@ class DobotRobot:
         self._sim_log(f"conveyor_move({distance}, '{direction}')")
         if not self._sim and self._device:
             try:
-                self._device.conveyor_belt(50, interface=0)
-                move_time = abs(distance) / 50.0
+                self._device.conveyor_belt(_DEFAULT_CONVEYOR_SPEED, interface=0)
+                move_time = abs(distance) / _DEFAULT_CONVEYOR_SPEED
                 time.sleep(move_time)
                 self._device.conveyor_belt(0)
             except Exception:

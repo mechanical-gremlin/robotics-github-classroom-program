@@ -141,8 +141,8 @@ const App = (() => {
               // membership check may fail for some orgs, continue
             }
           }
-          // Also check if user has any owned repos (individual teacher without org)
-          if (!isOrgAdmin && user.owned_private_repos > 0) {
+          // Also check if user has any public repos (individual teacher without org)
+          if (!isOrgAdmin && user.public_repos > 0 && user.owned_private_repos > 0) {
             isOrgAdmin = true;
           }
         } catch (_) {

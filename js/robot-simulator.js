@@ -329,7 +329,9 @@ const RobotSimulator = (() => {
     read_infrared: async () => {
       log('📡 Reading infrared sensor...', 'info');
       await new Promise(r => setTimeout(r, 300));
-      const dist = Math.round(20 + Math.random() * 180);
+      const SIM_IR_MIN = 20;
+      const SIM_IR_RANGE = 180;
+      const dist = Math.round(SIM_IR_MIN + Math.random() * SIM_IR_RANGE);
       log(`📡 Infrared distance: ${dist}mm`, 'success');
       return dist;
     },

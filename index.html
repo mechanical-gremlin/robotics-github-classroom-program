@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Robotics Classroom — Code. Build. Learn.</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+
+  <!-- Blockly -->
+  <script src="https://unpkg.com/blockly@10.4.3/blockly_compressed.js"></script>
+  <script src="https://unpkg.com/blockly@10.4.3/blocks_compressed.js"></script>
+  <script src="https://unpkg.com/blockly@10.4.3/python_compressed.js"></script>
+  <script src="https://unpkg.com/blockly@10.4.3/msg/en.js"></script>
+
+  <!-- Monaco Editor (loaded async) -->
+  <script>
+    // Load Monaco lazily when needed
+    window._monacoLoaded = false;
+    window.loadMonaco = () => {
+      if (window._monacoLoaded) return Promise.resolve();
+      window._monacoLoaded = true;
+      return new Promise(resolve => {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs/loader.js';
+        s.onload = () => {
+          require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs' } });
+          require(['vs/editor/editor.main'], resolve);
+        };
+        document.head.appendChild(s);
+      });
+    };
+  </script>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     WELCOME / LOGIN SCREEN
+═══════════════════════════════════════════════════════════ -->
+<div id="welcome-screen">
+  <div class="welcome-card">
+    <div class="welcome-logo">
+      <div class="logo-icon">🤖</div>
+      <h1>Robotics Classroom
+        <span>GitHub Classroom Program</span>
+      </h1>
+    </div>
+    <p class="welcome-subtitle">Code Dobot &amp; VEX robots with visual blocks, event sheets, and Python.</p>
+
+    <!-- Role Selector -->
+    <div class="role-selector">
+      <button class="role-btn" data-role="student">
+        <span class="role-icon">🎓</span>
+        <span class="role-label">Student</span>
+        <span class="role-desc">Work on assignments</span>
+      </button>
+      <button class="role-btn" data-role="teacher">
+        <span class="role-icon">👩‍🏫</span>
+        <span class="role-label">Teacher</span>
+        <span class="role-desc">Manage &amp; grade</span>
+      </button>
+    </div>
+
+    <!-- GitHub Token -->
+    <div class="form-group">
+      <label for="gh-token">🔑 GitHub Personal Access Token</label>
+      <input
+        type="password"
+        id="gh-token"
+        class="form-control"
+        placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+        autocomplete="off"
+      />
+      <div class="token-hint">
+        Need a token?
+        <a href="https://github.com/settings/tokens/new?scopes=repo,read:org&description=Robotics+Classroom" target="_blank" rel="noopener">
+          Create one on GitHub ↗
+        </a>
+        (needs <code>repo</code> and <code>read:org</code> scopes)
+      </div>
+    </div>
+
+    <button id="login-btn" class="btn btn-primary btn-lg">
+      🚀 Connect &amp; Enter
+    </button>
+
+    <div class="divider"></div>
+    <div class="text-sm text-muted text-center">
+      Your token is stored locally in this browser only.<br/>
+      Works offline after first login. No server required.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MAIN APP SHELL
+═══════════════════════════════════════════════════════════ -->
+<div id="app-shell" class="hidden" style="display:flex;height:100vh;overflow:hidden;">
+
+  <!-- ── SIDEBAR ─────────────────────────────────────────── -->
+  <nav id="sidebar">
+
+    <!-- Logo -->
+    <div class="sidebar-header">
+      <div class="sidebar-logo">🤖</div>
+      <div class="sidebar-title">
+        Robotics
+        <small>Classroom</small>
+      </div>
+    </div>
+
+    <!-- User -->
+    <div class="sidebar-user">
+      <div class="user-avatar" id="sidebar-avatar">U</div>
+      <div class="user-info">
+        <div class="user-name" id="sidebar-username">Loading...</div>
+        <div class="user-role" id="sidebar-role">🎓 Student</div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="sidebar-nav">
+
+      <div class="nav-section-label">Workspace</div>
+
+      <button class="nav-item" data-view="dashboard">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">My Assignments</span>
+      </button>
+
+      <button class="nav-item" data-view="editor">
+        <span class="nav-icon">💻</span>
+        <span class="nav-label">Code Editor</span>
+      </button>
+
+      <button class="nav-item" data-view="repositories">
+        <span class="nav-icon">📁</span>
+        <span class="nav-label">Repositories</span>
+      </button>
+
+      <button class="nav-item" data-view="vex">
+        <span class="nav-icon">🎮</span>
+        <span class="nav-label">VEX Upload</span>
+      </button>
+
+      <div class="nav-section-label" style="margin-top:8px;">Teacher</div>
+
+      <button class="nav-item hidden" id="teacher-nav-item" data-view="teacher">
+        <span class="nav-icon">👩‍🏫</span>
+        <span class="nav-label">Student Progress</span>
+      </button>
+
+      <div class="nav-section-label" style="margin-top:8px;">System</div>
+
+      <button class="nav-item" data-view="settings" id="settings-link">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-label">Settings</span>
+      </button>
+
+    </div>
+
+    <!-- Footer: Robot Status + Logout -->
+    <div class="sidebar-footer">
+      <div class="robot-status">
+        <div class="status-dot" id="robot-dot"></div>
+        <div class="status-info">
+          <div class="status-label" id="robot-status-label">No Robot</div>
+          <div class="status-sub" id="robot-status-sub">Simulator Mode</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost" style="color:#94a3b8;font-size:13px;" id="logout-btn">
+        ↩ Sign Out
+      </button>
+    </div>
+
+  </nav>
+
+  <!-- ── MAIN CONTENT ───────────────────────────────────── -->
+  <div id="main-content">
+
+    <!-- Top Header -->
+    <header id="top-header">
+      <div class="header-title">
+        <span id="header-title">📋 My Assignments</span>
+        <small id="header-subtitle"></small>
+      </div>
+      <div class="header-actions">
+        <span id="save-indicator" style="font-size:12px;color:#64748b;"></span>
+        <button id="save-btn" class="btn btn-success btn-sm hidden-in-dashboard">
+          💾 Save to GitHub
+        </button>
+      </div>
+    </header>
+
+    <!-- ── DASHBOARD VIEW ── -->
+    <div id="view-dashboard" class="app-view page-content">
+      <div class="grid-4 mb-4">
+        <div class="stat-card">
+          <div class="stat-icon blue">📋</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-repos">—</div>
+            <div class="stat-label">Repositories</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon purple">🏫</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-classes">—</div>
+            <div class="stat-label">Organizations</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">✅</div>
+          <div class="stat-info">
+            <div class="stat-value">—</div>
+            <div class="stat-label">Submitted</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber">⏳</div>
+          <div class="stat-info">
+            <div class="stat-value">—</div>
+            <div class="stat-label">In Progress</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📚 My Repositories &amp; Assignments</span>
+          <button class="btn btn-outline btn-sm" onclick="App.refreshDashboard()">🔄 Refresh</button>
+        </div>
+        <div class="card-body" id="assignments-list">
+          <div class="empty-state">
+            <div class="empty-state-icon">📭</div>
+            <div class="empty-state-title">Connect to GitHub</div>
+            <div class="empty-state-desc">Sign in with your GitHub token to see your assignments.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── EDITOR VIEW ── -->
+    <div id="view-editor" class="app-view hidden" style="display:flex;flex-direction:column;height:calc(100vh - 60px);overflow:hidden;">
+
+      <!-- Editor Toolbar -->
+      <div class="gh-status-bar">
+        <span style="font-size:16px;">📁</span>
+        <span id="current-file-name" style="font-weight:600;color:#1e293b;">No file open</span>
+        <div style="flex:1"></div>
+        <button id="new-file-btn" class="btn btn-outline btn-sm">➕ New File</button>
+        <button id="generate-python-btn" class="btn btn-outline btn-sm">🐍 Generate Python</button>
+        <button id="run-simulator-btn" class="btn btn-success btn-sm">▶ Run</button>
+        <button id="stop-simulator-btn" class="btn btn-danger btn-sm">⏹ Stop</button>
+        <button id="reset-simulator-btn" class="btn btn-outline btn-sm">↺ Reset</button>
+        <button id="save-btn-editor" class="btn btn-primary btn-sm" onclick="App.saveCurrentFile()">💾 Save</button>
+      </div>
+
+      <!-- Editor Tabs -->
+      <div class="editor-tabs">
+        <button class="editor-tab active" id="tab-blockly" data-tab="blockly">
+          <span class="tab-icon">🧩</span> Visual Blocks
+        </button>
+        <button class="editor-tab" id="tab-python" data-tab="python">
+          <span class="tab-icon">🐍</span> Python Code
+        </button>
+        <button class="editor-tab" id="tab-eventsheet" data-tab="eventsheet">
+          <span class="tab-icon">⚡</span> Event Sheet
+        </button>
+        <button class="editor-tab" id="tab-files" data-tab="files">
+          <span class="tab-icon">📁</span> Files
+        </button>
+      </div>
+
+      <!-- Editor Content -->
+      <div class="editor-split" style="flex:1;overflow:hidden;">
+
+        <!-- Main Editor Panels -->
+        <div class="editor-main">
+          <!-- Blockly Panel -->
+          <div id="panel-blockly" class="editor-panel" style="height:100%;position:relative;">
+            <div id="blockly-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:14px;z-index:10;background:#f8fafc;">
+              <div style="text-align:center;">
+                <div class="spinner" style="margin:0 auto 12px;"></div>
+                Loading Blockly editor...
+              </div>
+            </div>
+            <div id="blockly-container" style="width:100%;height:100%;"></div>
+          </div>
+
+          <!-- Python Panel -->
+          <div id="panel-python" class="editor-panel hidden" style="height:100%;display:flex;flex-direction:column;">
+            <div id="py-monaco-container" style="flex:1;overflow:hidden;">
+              <div id="py-monaco" style="width:100%;height:100%;"></div>
+            </div>
+            <div id="py-textarea-container" class="hidden" style="flex:1;">
+              <textarea id="py-textarea"
+                style="width:100%;height:100%;background:#1e1e1e;color:#d4d4d4;font-family:'Fira Code',monospace;font-size:14px;padding:16px;border:none;resize:none;outline:none;"
+                placeholder="# Write your Python code here&#10;import time&#10;from dobot_wrapper import DobotRobot&#10;&#10;robot = DobotRobot()&#10;&#10;robot.move_home()&#10;"></textarea>
+            </div>
+          </div>
+
+          <!-- Event Sheet Panel -->
+          <div id="panel-eventsheet" class="editor-panel hidden" style="height:100%;overflow:hidden;">
+            <div id="event-sheet-container" style="height:100%;overflow-y:auto;padding:20px;"></div>
+          </div>
+
+          <!-- Files Panel -->
+          <div id="panel-files" class="editor-panel hidden" style="height:100%;overflow:hidden;">
+            <div style="padding:12px 16px;border-bottom:1px solid #e2e8f0;font-size:13px;font-weight:700;">
+              Repository Files
+            </div>
+            <div id="file-tree" style="overflow-y:auto;height:calc(100% - 44px);">
+              <div class="empty-state" style="padding:40px 16px;">
+                <div class="empty-state-icon">📁</div>
+                <div class="empty-state-title">No Repository Open</div>
+                <div class="empty-state-desc">Go to Repositories and open a repo first.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Simulator Panel -->
+        <div class="simulator-panel">
+          <div class="simulator-header">
+            🤖 Robot Simulator
+            <span id="sim-robot-type" style="margin-left:auto;font-size:11px;color:#64748b;font-weight:400;"></span>
+          </div>
+          <div class="simulator-canvas-area">
+            <canvas id="robot-canvas" style="width:100%;aspect-ratio:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;"></canvas>
+            <div class="robot-controls" style="width:100%;">
+              <!-- D-Pad: Forward/Back/Left/Right -->
+              <div style="text-align:center;margin-bottom:8px;font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Move XY</div>
+              <div class="dpad">
+                <div></div>
+                <button class="dpad-btn" id="dpad-up" title="Move Forward">⬆️</button>
+                <div></div>
+                <button class="dpad-btn" id="dpad-left" title="Move Left">⬅️</button>
+                <button class="dpad-btn dpad-center" id="dpad-home" title="Home">🏠</button>
+                <button class="dpad-btn" id="dpad-right" title="Move Right">➡️</button>
+                <div></div>
+                <button class="dpad-btn" id="dpad-down" title="Move Backward">⬇️</button>
+                <div></div>
+              </div>
+              <!-- Z axis -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
+                <button class="dpad-btn" id="dpad-up2" title="Move Up" style="border-radius:6px;aspect-ratio:auto;padding:6px;">🔼 Up</button>
+                <button class="dpad-btn" id="dpad-down2" title="Move Down" style="border-radius:6px;aspect-ratio:auto;padding:6px;">🔽 Down</button>
+              </div>
+              <!-- Gripper -->
+              <div class="gripper-controls">
+                <button class="btn btn-outline btn-sm w-100" id="btn-grab">🟣 Grab</button>
+                <button class="btn btn-outline btn-sm w-100" id="btn-release">⚪ Release</button>
+              </div>
+            </div>
+          </div>
+          <!-- Output log -->
+          <div class="output-log" id="sim-log">
+            <div class="log-line info">[ready] Simulator initialized</div>
+          </div>
+        </div>
+
+      </div><!-- /editor-split -->
+    </div><!-- /view-editor -->
+
+    <!-- ── REPOSITORIES VIEW ── -->
+    <div id="view-repositories" class="app-view hidden page-content">
+      <div class="section-title">📁 GitHub Repositories</div>
+      <div class="section-subtitle">Browse and open repositories from your GitHub Classroom</div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="input-group" style="flex:1;">
+            <input type="text" id="repo-search" class="form-control" placeholder="Search repositories..." />
+            <button class="btn btn-primary" onclick="document.getElementById('repo-search').dispatchEvent(new Event('input'))">🔍</button>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="App.refreshRepositories()">🔄</button>
+        </div>
+        <div id="repo-list">
+          <div class="empty-state">
+            <div class="empty-state-icon">📁</div>
+            <div class="empty-state-title">Loading Repositories...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── VEX UPLOAD VIEW ── -->
+    <div id="view-vex" class="app-view hidden page-content">
+      <div class="section-title">🎮 VEX Code Upload</div>
+      <div class="section-subtitle">Upload VEX Blocks or VEX Python code files to GitHub Classroom</div>
+
+      <div class="grid-2" style="gap:24px;align-items:start;">
+        <div class="card">
+          <div class="card-header"><span class="card-title">⬆️ Upload VEX File</span></div>
+          <div class="card-body">
+            <div class="form-group">
+              <label>Target Repository</label>
+              <input type="text" id="vex-repo-input" class="form-control" placeholder="owner/repository-name" />
+              <div class="token-hint">Format: your-username/assignment-repo</div>
+            </div>
+
+            <div id="vex-drop-zone" class="upload-zone" onclick="document.getElementById('vex-file-input').click()">
+              <div class="upload-zone-icon">📂</div>
+              <div class="upload-zone-title">Drop VEX File Here</div>
+              <div class="upload-zone-desc">Or click to browse — supports .vex, .v5python, .py, .txt, .xml</div>
+              <input type="file" id="vex-file-input" class="hidden" accept=".vex,.v5python,.py,.txt,.xml,.rbp" />
+            </div>
+
+            <div class="hidden mt-4" id="vex-preview-container">
+              <label class="form-group" style="margin-bottom:8px;">
+                <span style="font-size:13px;font-weight:600;">File Preview</span>
+              </label>
+              <pre id="vex-preview" style="background:#1e1e1e;color:#d4d4d4;padding:12px;border-radius:8px;font-size:12px;overflow:auto;max-height:200px;font-family:'Fira Code',monospace;"></pre>
+            </div>
+
+            <button id="vex-upload-btn" class="btn btn-primary w-100 mt-4 hidden" style="margin-top:12px;">
+              ⬆️ Upload to GitHub
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">ℹ️ Supported Formats</span></div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;align-items:flex-start;gap:12px;">
+                <span style="font-size:24px;">🎮</span>
+                <div>
+                  <div style="font-weight:700;font-size:14px;">VEX Blocks (.vex)</div>
+                  <div class="text-sm text-muted">VEX IQ/V5 block-based programs exported from VEXcode</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:12px;">
+                <span style="font-size:24px;">🐍</span>
+                <div>
+                  <div style="font-weight:700;font-size:14px;">VEX Python (.v5python, .py)</div>
+                  <div class="text-sm text-muted">Python programs written for the VEX V5 system</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:12px;">
+                <span style="font-size:24px;">🧩</span>
+                <div>
+                  <div style="font-weight:700;font-size:14px;">Blockly XML (.xml)</div>
+                  <div class="text-sm text-muted">Blockly workspace files from this editor</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:12px;">
+                <span style="font-size:24px;">📝</span>
+                <div>
+                  <div style="font-weight:700;font-size:14px;">Text / Python (.py, .txt)</div>
+                  <div class="text-sm text-muted">Any plain text or Python file</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+            <div style="background:#eff6ff;border-radius:8px;padding:12px;font-size:13px;">
+              <div style="font-weight:700;margin-bottom:4px;">💡 How it works</div>
+              Files are uploaded directly to your GitHub repository via the GitHub API.
+              No intermediary server is used — your code goes straight to your classroom.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TEACHER DASHBOARD VIEW ── -->
+    <div id="view-teacher" class="app-view hidden page-content">
+      <div class="section-title">👩‍🏫 Teacher Dashboard</div>
+      <div class="section-subtitle">Monitor student progress and access their work</div>
+
+      <div class="grid-4 mb-4">
+        <div class="stat-card">
+          <div class="stat-icon blue">🏫</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-classes">—</div>
+            <div class="stat-label">Classrooms</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon purple">📁</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-repos">—</div>
+            <div class="stat-label">Student Repos</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">✅</div>
+          <div class="stat-info">
+            <div class="stat-value">—</div>
+            <div class="stat-label">Submitted</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber">⏳</div>
+          <div class="stat-info">
+            <div class="stat-value">—</div>
+            <div class="stat-label">In Progress</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📚 Student Repositories</span>
+          <select id="teacher-org-select" class="form-control" style="width:auto;max-width:280px;">
+            <option value="">-- Select Classroom / Organization --</option>
+          </select>
+          <button class="btn btn-outline btn-sm" onclick="App.refreshTeacherDashboard?.()">🔄</button>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <table class="student-table">
+            <thead>
+              <tr>
+                <th>Repository / Student</th>
+                <th>Branch</th>
+                <th>Last Updated</th>
+                <th>Progress</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="students-table-body">
+              <tr>
+                <td colspan="5" class="text-center text-muted" style="padding:32px;">
+                  Select a classroom above to see student repos
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS VIEW ── -->
+    <div id="view-settings" class="app-view hidden page-content">
+      <div class="section-title">⚙️ Settings</div>
+      <div class="section-subtitle">Configure your robot and account preferences</div>
+
+      <!-- Robot Selection -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <span class="card-title">🤖 Select Your Robot</span>
+        </div>
+        <div class="card-body">
+          <div class="grid-4" id="robot-cards">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Account Info -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <span class="card-title">👤 GitHub Account</span>
+        </div>
+        <div class="card-body">
+          <div style="display:flex;align-items:center;gap:16px;">
+            <div class="user-avatar" id="settings-avatar" style="width:56px;height:56px;font-size:24px;"></div>
+            <div>
+              <div style="font-size:18px;font-weight:700;" id="settings-username">—</div>
+              <div class="text-muted text-sm" id="settings-role">—</div>
+            </div>
+            <div style="flex:1"></div>
+            <button class="btn btn-danger btn-sm" id="logout-btn-settings">↩ Sign Out</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- About -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">ℹ️ About</span></div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:14px;">
+            <div>
+              <div style="font-weight:700;margin-bottom:4px;">🤖 Robotics Classroom Program</div>
+              <div class="text-muted">Version 1.0 — Browser-based, no installation needed.</div>
+            </div>
+            <div>
+              <div style="font-weight:700;margin-bottom:4px;">📚 Supported Robots</div>
+              <div class="text-muted">Dobot Magician, Dobot AI Starter, Dobot Magician AI Kit, VEX</div>
+            </div>
+            <div>
+              <div style="font-weight:700;margin-bottom:4px;">💻 Coding Modes</div>
+              <div class="text-muted">Blockly Visual Blocks, Python Editor, Event Sheet</div>
+            </div>
+            <div>
+              <div style="font-weight:700;margin-bottom:4px;">🔗 GitHub Integration</div>
+              <div class="text-muted">Direct GitHub API — push &amp; pull without admin permissions</div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div style="background:#f0fdf4;border-radius:8px;padding:16px;font-size:13px;">
+            <div style="font-weight:700;margin-bottom:8px;">🛠️ Dobot Python Wrapper</div>
+            <div class="text-muted mb-2">To run generated code on a real Dobot, install the wrapper:</div>
+            <pre style="background:#1e1e1e;color:#68d391;padding:10px;border-radius:6px;font-size:12px;margin:0;">pip install dobot-magician-wrapper</pre>
+            <div class="text-muted mt-2">
+              Then run your generated <code>.py</code> file from the Command Prompt or Terminal.
+            </div>
+          </div>
+
+          <div style="background:#eff6ff;border-radius:8px;padding:16px;font-size:13px;margin-top:12px;">
+            <div style="font-weight:700;margin-bottom:8px;">🌐 Running Without Internet</div>
+            <div class="text-muted">The GitHub token is stored locally in your browser. GitHub API requires internet.
+            Blockly and Monaco Editor load from CDN. For fully offline use, download the library files and update the script tags.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main-content -->
+</div><!-- /app-shell -->
+
+<!-- Toast Container -->
+<div id="toast-container" class="toast-container"></div>
+
+<!-- ── Application Scripts ───────────────────────────── -->
+<script src="js/github-api.js"></script>
+<script src="js/blockly-setup.js"></script>
+<script src="js/event-sheet.js"></script>
+<script src="js/robot-simulator.js"></script>
+<script src="js/app.js"></script>
+
+<script>
+  // Wire up a few things that need DOM access after scripts load
+
+  // Settings page needs user info
+  document.addEventListener('DOMContentLoaded', () => {
+    const logoutSettings = document.getElementById('logout-btn-settings');
+    if (logoutSettings) {
+      logoutSettings.addEventListener('click', () => {
+        if (confirm('Sign out?')) App.handleLogout?.();
+        else {
+          GitHubAPI.clearToken();
+          location.reload();
+        }
+      });
+    }
+
+    // Monaco lazy load on Python tab click
+    document.getElementById('tab-python')?.addEventListener('click', () => {
+      if (!window._monacoLoaded) {
+        window.loadMonaco().then(() => {
+          if (window.App) {
+            // Monaco is ready, re-init editor
+            const event = new Event('monaco-ready');
+            document.dispatchEvent(event);
+          }
+        });
+      }
+    });
+
+    // Update settings page user info
+    const updateSettingsUser = () => {
+      const user = GitHubAPI.getCurrentUser();
+      if (!user) return;
+      const av = document.getElementById('settings-avatar');
+      const un = document.getElementById('settings-username');
+      const rl = document.getElementById('settings-role');
+      if (av) av.innerHTML = user.avatar_url ? `<img src="${user.avatar_url}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;">` : user.login[0].toUpperCase();
+      if (un) un.textContent = user.login;
+      if (rl) rl.textContent = localStorage.getItem('user_role') === 'teacher' ? '👩‍🏫 Teacher' : '🎓 Student';
+    };
+
+    // Trigger settings update when settings view opens
+    document.querySelector('[data-view="settings"]')?.addEventListener('click', updateSettingsUser);
+  });
+</script>
+
+</body>
+</html>

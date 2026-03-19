@@ -103,7 +103,13 @@ class DobotRobot:
 
         if _HAS_PYDOBOT:
             try:
-                detected_port = port or self._detect_port()
+                if port:
+                    self._log(f'🔌 Connecting to specified port: {port}')
+                    detected_port = port
+                else:
+                    detected_port = self._detect_port()
+                    if detected_port:
+                        self._log(f'🔍 Auto-detected port: {detected_port}')
                 if detected_port:
                     self._connect_to_port(detected_port)
                 else:
@@ -130,7 +136,10 @@ class DobotRobot:
         print(f'[DobotRobot] {message}', file=sys.stdout, flush=True)
 
     def _sim_log(self, action: str):
-        self._log(f'[SIM] {action}')
+        if self._sim:
+            self._log(f'[SIM] {action}')
+        else:
+            self._log(f'[ROBOT] {action}')
 
     def _connect_to_port(self, port: str):
         """Attempt to open a connection to the Dobot on the given serial port."""
@@ -248,10 +257,12 @@ class DobotRobot:
     def move_home(self):
         """Move the robot arm back to its home/starting position."""
         self._check_emergency()
-        self._sim_log('move_home()')
-        self._x, self._y, self._z, self._r = 0.0, 0.0, 50.0, 0.0
+        self._x, self._y, self._z, self._r = 200.0, 0.0, 150.0, 0.0
         if not self._sim and self._device:
-            self._device.home()
+            self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
+            self._log('✅ move_home() complete')
+        else:
+            self._sim_log('move_home()')
 
     def move_forward(self, mm: float = 10):
         """Move the arm forward by *mm* millimeters."""

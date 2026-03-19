@@ -383,7 +383,10 @@ const App = (() => {
         wordWrap: 'on',
         automaticLayout: true,
         padding: { top: 12 },
-        value: '# Write your Python code here\nimport time\nfrom dobot_wrapper import DobotRobot\n\nrobot = DobotRobot()\n\n# Example:\nrobot.move_home()\ntime.sleep(1)\nrobot.grab()\n',
+        value: (() => {
+          const port = localStorage.getItem('robot_port') || 'COM3';
+          return `# Write your Python code here\nimport time\nfrom dobot_wrapper import DobotRobot\n\nrobot = DobotRobot(port='${port}')\n\n# Example:\nrobot.move_home()\ntime.sleep(1)\nrobot.grab()\n`;
+        })(),
       });
       state.monacoReady = true;
       window.monacoEditor.onDidChangeModelContent(() => scheduleAutoSave());

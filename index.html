@@ -351,7 +351,7 @@
               <div id="py-textarea-container" class="hidden" style="flex:1;">
                 <textarea id="py-textarea"
                   style="width:100%;height:100%;background:#1e1e1e;color:#d4d4d4;font-family:'Fira Code',monospace;font-size:14px;padding:16px;border:none;resize:none;outline:none;"
-                  placeholder="# Write your Python code here&#10;import time&#10;from dobot_wrapper import DobotRobot&#10;&#10;robot = DobotRobot()&#10;&#10;robot.move_home()&#10;"></textarea>
+                  placeholder="# Write your Python code here&#10;import time&#10;from dobot_wrapper import DobotRobot&#10;&#10;robot = DobotRobot(port='COM3')&#10;&#10;robot.move_home()&#10;"></textarea>
               </div>
             </div>
           </div>
@@ -664,12 +664,27 @@
 
           <div class="divider"></div>
 
+          <div style="background:#eff6ff;border-radius:8px;padding:16px;font-size:13px;margin-bottom:12px;">
+            <div style="font-weight:700;margin-bottom:8px;">🔌 Robot Connection</div>
+            <label style="display:block;margin-bottom:4px;font-weight:600;">Serial Port (COM Port)</label>
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+              <input id="robot-port-input" type="text" placeholder="e.g. COM3" value="COM3"
+                style="flex:1;padding:6px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:monospace;" />
+              <button onclick="(function(){const v=document.getElementById('robot-port-input').value.trim();if(v){localStorage.setItem('robot_port',v);toast('Port Saved','Robot port set to '+v,'success');}else{toast('Invalid Port','Please enter a port name.','error');}})()"
+                style="padding:6px 14px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">💾 Save Port</button>
+            </div>
+            <div class="text-muted" style="font-size:12px;margin-bottom:8px;">Enter the COM port your Dobot is connected to. Find it in Device Manager under Ports (COM &amp; LPT).</div>
+            <pre style="background:#1e1e1e;color:#68d391;padding:10px;border-radius:6px;font-size:12px;margin:0;">from dobot_wrapper import DobotRobot
+print(DobotRobot.list_ports())   # list ports
+robot = DobotRobot(port='COM3')  # use your port</pre>
+          </div>
+
           <div style="background:#f0fdf4;border-radius:8px;padding:16px;font-size:13px;">
             <div style="font-weight:700;margin-bottom:8px;">🛠️ Dobot Python Wrapper</div>
             <div class="text-muted mb-2">To run generated code on a real Dobot, install the wrapper:</div>
-            <pre style="background:#1e1e1e;color:#68d391;padding:10px;border-radius:6px;font-size:12px;margin:0;">pip install pydobot pyserial</pre>
+            <pre style="background:#1e1e1e;color:#68d391;padding:10px;border-radius:6px;font-size:12px;margin:0;">py -m pip install pydobot pyserial</pre>
             <div class="text-muted mt-2" style="font-size:12px;">
-              If pip is blocked by admin: <code style="background:#e2e8f0;padding:2px 6px;border-radius:4px;font-size:11px;">pip install --user pydobot pyserial</code>
+              If <code style="background:#e2e8f0;padding:2px 6px;border-radius:4px;font-size:11px;">py -m pip</code> is blocked by admin: <code style="background:#e2e8f0;padding:2px 6px;border-radius:4px;font-size:11px;">py -m pip install --user pydobot pyserial</code>
             </div>
             <div class="text-muted mt-2">
               Then run your generated <code>.py</code> file from the Command Prompt or Terminal.
@@ -767,9 +782,9 @@
               <li>Connect the Dobot Magician to your computer using the <strong>USB cable</strong> included with the robot.</li>
               <li>Turn <strong>ON</strong> the Dobot using the power switch on the base.</li>
               <li>Wait for the robot to <strong>initialize</strong> (it will move slightly and the LED will turn solid).</li>
-              <li>Install the Python driver: <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;">pip install pydobot pyserial</code><br/>
-                  <span style="font-size:12px;color:#64748b;">If blocked by admin, try: <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;">pip install --user pydobot pyserial</code></span></li>
-              <li>Run your Python program from the command line — the wrapper will <strong>auto-detect</strong> the USB port.</li>
+              <li>Install the Python driver: <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;">py -m pip install pydobot pyserial</code><br/>
+                  <span style="font-size:12px;color:#64748b;">If blocked by admin, try: <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;">py -m pip install --user pydobot pyserial</code></span></li>
+              <li>Run your Python program from the command line — the wrapper will <strong>auto-detect</strong> the USB port, or specify it manually (e.g., <code>port='COM3'</code> — check your own port number in Device Manager).</li>
             </ol>
             <div style="background:#eff6ff;border-radius:8px;padding:12px;margin-bottom:12px;">
               <strong>🔧 Manual Port Selection:</strong> If auto-detect does not find the robot, you can list ports and connect manually:
@@ -787,7 +802,8 @@ robot = DobotRobot(port='COM3')  # connect to your port</pre>
               • Check that the USB cable is firmly connected and the power is on.<br/>
               • Close any other program using the port (DobotStudio, etc.).<br/>
               • On Windows, you may need to install the <a href="https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers" target="_blank" rel="noopener" style="color:#2563eb;text-decoration:underline;">Silicon Labs CP210x USB driver</a>.<br/>
-              • If <code>pip install</code> gives "Access Denied", try <code>pip install --user pydobot pyserial</code> or ask your administrator.
+              • If <code>py -m pip install</code> gives "Access Denied", try <code>py -m pip install --user pydobot pyserial</code> or ask your administrator.<br/>
+              • Check your COM port number in Device Manager under Ports (COM &amp; LPT) — it may not be COM3 on your computer.
             </div>
           </div>
         </div>
@@ -845,8 +861,8 @@ robot = DobotRobot(port='COM3')  # connect to your port</pre>
               <div style="font-weight:700;color:#dc2626;margin-bottom:4px;">🔴 "No Dobot found" / Connection Failed</div>
               <div style="background:#fef2f2;padding:10px;border-radius:6px;">
                 <strong>Cause:</strong> Robot is not connected or driver is missing.<br/>
-                <strong>Fix:</strong> 1) Check USB cable is firmly connected. 2) Power on the robot. 3) Install driver: <code>pip install pydobot pyserial</code> (or <code>pip install --user pydobot pyserial</code> if blocked). 4) On Windows install the <a href="https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers" target="_blank" rel="noopener" style="color:#2563eb;">Silicon Labs CP210x driver</a>. 5) Close any other program using the COM port (DobotStudio, etc.).<br/>
-                <strong>Manual connect:</strong> Use <code>DobotRobot.list_ports()</code> to see available ports, then <code>DobotRobot(port='COM3')</code>.
+                <strong>Fix:</strong> 1) Check USB cable is firmly connected. 2) Power on the robot. 3) Install driver: <code>py -m pip install pydobot pyserial</code> (or <code>py -m pip install --user pydobot pyserial</code> if blocked). 4) On Windows install the <a href="https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers" target="_blank" rel="noopener" style="color:#2563eb;">Silicon Labs CP210x driver</a>. 5) Close any other program using the COM port (DobotStudio, etc.).<br/>
+                <strong>Manual connect:</strong> Use <code>DobotRobot.list_ports()</code> to see available ports, then <code>DobotRobot(port='COM3')</code> (replace COM3 with your actual port number from Device Manager).
               </div>
             </div>
             <div style="margin-bottom:16px;">
@@ -881,16 +897,16 @@ robot = DobotRobot(port='COM3')  # connect to your port</pre>
               <div style="font-weight:700;color:#dc2626;margin-bottom:4px;">🔴 "ModuleNotFoundError: No module named 'pydobot'"</div>
               <div style="background:#fef2f2;padding:10px;border-radius:6px;">
                 <strong>Cause:</strong> The pydobot Python package is not installed.<br/>
-                <strong>Fix:</strong> Run <code>pip install pydobot pyserial</code> in your terminal.<br/>
-                If pip is restricted by admin ("Access Denied"), try: <code>pip install --user pydobot pyserial</code><br/>
+                <strong>Fix:</strong> Run <code>py -m pip install pydobot pyserial</code> in your terminal.<br/>
+                If pip is restricted by admin ("Access Denied"), try: <code>py -m pip install --user pydobot pyserial</code><br/>
                 If that also fails, ask your teacher or administrator to install it on the computer.
               </div>
             </div>
             <div style="margin-bottom:16px;">
-              <div style="font-weight:700;color:#dc2626;margin-bottom:4px;">🔴 "pip install" gives "Access Denied" or "Permission Error"</div>
+              <div style="font-weight:700;color:#dc2626;margin-bottom:4px;">🔴 "py -m pip install" gives "Access Denied" or "Permission Error"</div>
               <div style="background:#fef2f2;padding:10px;border-radius:6px;">
                 <strong>Cause:</strong> Your computer restricts software installation (common on school/lab computers).<br/>
-                <strong>Fix:</strong> Try installing for your user only: <code>pip install --user pydobot pyserial</code><br/>
+                <strong>Fix:</strong> Try installing for your user only: <code>py -m pip install --user pydobot pyserial</code><br/>
                 Or use the full Python path: <code>python -m pip install --user pydobot pyserial</code><br/>
                 If both fail, ask your teacher or IT administrator to install the packages.
               </div>

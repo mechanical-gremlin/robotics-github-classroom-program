@@ -666,54 +666,11 @@ const BlocklySetup = (() => {
     const contents = [];
 
     // ── Movement ──
-    const movementBlocks = [
-      { kind: 'block', type: 'dobot_move_home' },
-      { kind: 'block', type: 'dobot_move_to_point',
-        inputs: {
-          X: { block: { type: 'math_number', fields: { NUM: 0 } } },
-          Y: { block: { type: 'math_number', fields: { NUM: 0 } } },
-          Z: { block: { type: 'math_number', fields: { NUM: 0 } } },
-        }
-      },
-      { kind: 'block', type: 'dobot_move_delta',
-        inputs: {
-          DX: { block: { type: 'math_number', fields: { NUM: 0 } } },
-          DY: { block: { type: 'math_number', fields: { NUM: 0 } } },
-          DZ: { block: { type: 'math_number', fields: { NUM: 0 } } },
-        }
-      },
-      { kind: 'block', type: 'dobot_move_delta_r',
-        inputs: { DR: { block: { type: 'math_number', fields: { NUM: 0 } } } } },
-      { kind: 'block', type: 'dobot_set_joint_angles',
-        inputs: {
-          J1: { block: { type: 'math_number', fields: { NUM: 0 } } },
-          J2: { block: { type: 'math_number', fields: { NUM: 0 } } },
-          J3: { block: { type: 'math_number', fields: { NUM: 0 } } },
-          J4: { block: { type: 'math_number', fields: { NUM: 0 } } },
-        }
-      },
-      { kind: 'block', type: 'dobot_rotate',
-        inputs: { DEGREES: { block: { type: 'math_number', fields: { NUM: 45 } } } } },
-      { kind: 'block', type: 'dobot_get_position' },
-      { kind: 'block', type: 'dobot_get_joint_angles' },
-      { kind: 'block', type: 'dobot_move_forward',
-        inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 10 } } } } },
-      { kind: 'block', type: 'dobot_move_backward',
-        inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 10 } } } } },
-      { kind: 'block', type: 'dobot_move_left',
-        inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 10 } } } } },
-      { kind: 'block', type: 'dobot_move_right',
-        inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 10 } } } } },
-      { kind: 'block', type: 'dobot_move_up',
-        inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 10 } } } } },
-      { kind: 'block', type: 'dobot_move_down',
-        inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 10 } } } } },
-    ];
+    let movementBlocks;
 
-    // AI Starter-specific drive blocks
     if (robotType === 'ai_starter') {
-      movementBlocks.length = 0; // Clear arm-specific blocks
-      movementBlocks.push(
+      // AI Starter is a wheeled robot — only drive/turn blocks
+      movementBlocks = [
         { kind: 'block', type: 'ai_starter_drive_forward',
           inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 100 } } } } },
         { kind: 'block', type: 'ai_starter_drive_backward',
@@ -721,7 +678,52 @@ const BlocklySetup = (() => {
         { kind: 'block', type: 'ai_starter_turn',
           inputs: { DEGREES: { block: { type: 'math_number', fields: { NUM: 90 } } } } },
         { kind: 'block', type: 'ai_starter_stop' },
-      );
+      ];
+    } else {
+      // Dobot Magician / Magician+AI — arm movement blocks
+      movementBlocks = [
+        { kind: 'block', type: 'dobot_move_home' },
+        { kind: 'block', type: 'dobot_move_to_point',
+          inputs: {
+            X: { block: { type: 'math_number', fields: { NUM: 0 } } },
+            Y: { block: { type: 'math_number', fields: { NUM: 0 } } },
+            Z: { block: { type: 'math_number', fields: { NUM: 0 } } },
+          }
+        },
+        { kind: 'block', type: 'dobot_move_delta',
+          inputs: {
+            DX: { block: { type: 'math_number', fields: { NUM: 0 } } },
+            DY: { block: { type: 'math_number', fields: { NUM: 0 } } },
+            DZ: { block: { type: 'math_number', fields: { NUM: 0 } } },
+          }
+        },
+        { kind: 'block', type: 'dobot_move_delta_r',
+          inputs: { DR: { block: { type: 'math_number', fields: { NUM: 0 } } } } },
+        { kind: 'block', type: 'dobot_set_joint_angles',
+          inputs: {
+            J1: { block: { type: 'math_number', fields: { NUM: 0 } } },
+            J2: { block: { type: 'math_number', fields: { NUM: 0 } } },
+            J3: { block: { type: 'math_number', fields: { NUM: 0 } } },
+            J4: { block: { type: 'math_number', fields: { NUM: 0 } } },
+          }
+        },
+        { kind: 'block', type: 'dobot_rotate',
+          inputs: { DEGREES: { block: { type: 'math_number', fields: { NUM: 45 } } } } },
+        { kind: 'block', type: 'dobot_get_position' },
+        { kind: 'block', type: 'dobot_get_joint_angles' },
+        { kind: 'block', type: 'dobot_move_forward',
+          inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 10 } } } } },
+        { kind: 'block', type: 'dobot_move_backward',
+          inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 10 } } } } },
+        { kind: 'block', type: 'dobot_move_left',
+          inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 10 } } } } },
+        { kind: 'block', type: 'dobot_move_right',
+          inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 10 } } } } },
+        { kind: 'block', type: 'dobot_move_up',
+          inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 10 } } } } },
+        { kind: 'block', type: 'dobot_move_down',
+          inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 10 } } } } },
+      ];
     }
 
     contents.push({

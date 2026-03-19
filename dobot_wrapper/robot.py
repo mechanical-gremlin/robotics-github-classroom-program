@@ -213,7 +213,7 @@ class DobotRobot:
         """Lower the arm by *mm* millimeters."""
         self._check_emergency()
         self._sim_log(f'move_down({mm}mm)')
-        self._z = max(self._z - float(mm), 0)
+        self._z = max(self._z - float(mm), _WORKSPACE_BOUNDS['z_min'])
         self._check_bounds()
         if not self._sim and self._device:
             self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
@@ -280,6 +280,7 @@ class DobotRobot:
             dy: Change in Y (mm).
             dz: Change in Z (mm).
         """
+        self._check_emergency()
         self._sim_log(f'move_delta({dx}, {dy}, {dz})')
         self._x += float(dx)
         self._y += float(dy)
@@ -296,8 +297,14 @@ class DobotRobot:
         Args:
             dr: Change in rotation (degrees). Positive = counter-clockwise.
         """
+        self._check_emergency()
         self._sim_log(f'move_delta_r({dr}°)')
         self._r += float(dr)
+        # Clamp rotation to safe bounds
+        b = _WORKSPACE_BOUNDS
+        if self._r < b['r_min'] or self._r > b['r_max']:
+            self._log(f'⚠️  BOUNDS WARNING: R={self._r:.1f} out of range [{b["r_min"]}, {b["r_max"]}] — clamped')
+            self._r = max(b['r_min'], min(b['r_max'], self._r))
         if not self._sim and self._device:
             self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
 

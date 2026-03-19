@@ -522,7 +522,7 @@ const RobotSimulator = (() => {
   /** Simplified inverse kinematics to approximate joint angles from X,Y,Z */
   const updateJointAnglesFromXYZ = () => {
     // J1 = base rotation (derived from X, Y)
-    state.j1 = Math.atan2(state.x, state.y) * (180 / Math.PI);
+    state.j1 = Math.atan2(state.y, state.x) * (180 / Math.PI);
     // J4 = end effector rotation
     state.j4 = state.rotation;
     // Simplified arm IK (Dobot has L1≈135mm, L2≈147mm)

@@ -16,6 +16,20 @@ const RobotSimulator = (() => {
     clawOpen: true,
     speed: 'medium',
     log: [],
+    // Joint angles (approximate from IK)
+    j1: 0,
+    j2: 45,
+    j3: 45,
+    j4: 0,
+    emergencyStopped: false,
+  };
+
+  // Dobot Magician workspace bounds (mm)
+  const BOUNDS = {
+    X_MIN: -320, X_MAX: 320,
+    Y_MIN: -320, Y_MAX: 320,
+    Z_MIN: -75,  Z_MAX: 200,
+    R_MIN: -135, R_MAX: 135,
   };
 
   const SCALE = 1.2; // mm to pixels
@@ -223,11 +237,16 @@ const RobotSimulator = (() => {
       log('✅ Done', 'success');
     },
     move_to: async (x, y, z) => {
-      log(`📍 Moving to (${x}, ${y}, ${z})`, 'info');
+      const warnings = checkBounds(x, y, z);
+      if (warnings.length) {
+        log(`⚠️ Bounds warning: ${warnings.join('; ')}`, 'warn');
+      }
+      const safe = clampToBounds(x, y, z);
+      log(`📍 Moving to (${safe.x}, ${safe.y}, ${safe.z})`, 'info');
       await animate((t, s) => {
-        state.x = s.x + (x - s.x) * t;
-        state.y = s.y + (y - s.y) * t;
-        state.z = s.z + (z - s.z) * t;
+        state.x = s.x + (safe.x - s.x) * t;
+        state.y = s.y + (safe.y - s.y) * t;
+        state.z = s.z + (safe.z - s.z) * t;
       });
       log('✅ At position', 'success');
     },
@@ -379,6 +398,60 @@ const RobotSimulator = (() => {
       log(`📐 Position: ${pos}`, 'info');
       return pos;
     },
+    move_delta_r: async (dr = 0) => {
+      log(`🔄 Rotating end effector by ΔR=${dr}°`, 'info');
+      await animate((t, s) => { state.rotation = s.rotation + dr * t; });
+      log('✅ End effector rotated', 'success');
+    },
+    get_joint_angles: async () => {
+      updateJointAnglesFromXYZ();
+      const angles = `(${Math.round(state.j1)}, ${Math.round(state.j2)}, ${Math.round(state.j3)}, ${Math.round(state.j4)})`;
+      log(`🔩 Joint Angles: ${angles}`, 'info');
+      return angles;
+    },
+    emergency_stop: async () => {
+      state.emergencyStopped = true;
+      stopRequested = true;
+      running = false;
+      log('🛑 EMERGENCY STOP — All movement halted!', 'error');
+      if (canvas) {
+        canvas.style.outline = '4px solid #dc2626';
+        setTimeout(() => { canvas.style.outline = ''; }, 2000);
+      }
+    },
+    init_color_sensor: async (port) => {
+      log(`🎨 Color sensor initialized on GP${port}`, 'info');
+    },
+    init_infrared: async (port) => {
+      log(`📡 Infrared sensor initialized on GP${port}`, 'info');
+    },
+    init_conveyor: async (port) => {
+      log(`🏭 Conveyor belt initialized on STEPPER${port}`, 'info');
+    },
+    // AI Starter drive commands
+    drive_forward: async (mm = 100) => {
+      log(`🚗 Driving forward ${mm}mm`, 'info');
+      await animate((t, s) => { state.y = s.y + mm * t; });
+      log('✅ Done', 'success');
+    },
+    drive_backward: async (mm = 100) => {
+      log(`🚗 Driving backward ${mm}mm`, 'info');
+      await animate((t, s) => { state.y = s.y - mm * t; });
+      log('✅ Done', 'success');
+    },
+    turn_left: async (deg = 90) => {
+      log(`↩️ Turning left ${deg}°`, 'info');
+      await animate((t, s) => { state.rotation = s.rotation + deg * t; });
+      log('✅ Done', 'success');
+    },
+    turn_right: async (deg = 90) => {
+      log(`↪️ Turning right ${deg}°`, 'info');
+      await animate((t, s) => { state.rotation = s.rotation - deg * t; });
+      log('✅ Done', 'success');
+    },
+    stop_driving: async () => {
+      log('⏹️ Wheels stopped', 'info');
+    },
   };
 
   /* ---- Execute a sequence of commands ---- */
@@ -389,10 +462,11 @@ const RobotSimulator = (() => {
     if (running) return;
     running = true;
     stopRequested = false;
+    state.emergencyStopped = false;
     log('▶️ Starting program...', 'info');
 
     for (const cmd of commandList) {
-      if (stopRequested) break;
+      if (stopRequested || state.emergencyStopped) break;
       const fn = commands[cmd.type];
       if (fn) {
         try {
@@ -407,7 +481,11 @@ const RobotSimulator = (() => {
       await new Promise(r => setTimeout(r, 100));
     }
 
-    log('⏹️ Program finished', 'info');
+    if (state.emergencyStopped) {
+      log('🛑 Program halted by emergency stop', 'error');
+    } else {
+      log('⏹️ Program finished', 'info');
+    }
     running = false;
   };
 
@@ -418,7 +496,7 @@ const RobotSimulator = (() => {
   };
 
   const reset = () => {
-    state = { x: 0, y: 0, z: 50, rotation: 0, gripper: false, clawOpen: true, speed: 'medium', log: [], conveyorRunning: false };
+    state = { x: 0, y: 0, z: 50, rotation: 0, gripper: false, clawOpen: true, speed: 'medium', log: [], conveyorRunning: false, j1: 0, j2: 45, j3: 45, j4: 0, emergencyStopped: false };
     draw();
     renderLog();
     updatePositionDisplay();
@@ -427,13 +505,57 @@ const RobotSimulator = (() => {
   const updatePositionDisplay = () => {
     const el = document.getElementById('sim-position-display');
     if (!el) return;
+    // Approximate joint angles from X, Y, Z, R using simplified IK
+    updateJointAnglesFromXYZ();
     el.innerHTML = `
       <div class="pos-row"><span class="pos-label">X:</span><span class="pos-value">${Math.round(state.x * 10) / 10}</span><span class="pos-unit">mm</span></div>
       <div class="pos-row"><span class="pos-label">Y:</span><span class="pos-value">${Math.round(state.y * 10) / 10}</span><span class="pos-unit">mm</span></div>
       <div class="pos-row"><span class="pos-label">Z:</span><span class="pos-value">${Math.round(state.z * 10) / 10}</span><span class="pos-unit">mm</span></div>
       <div class="pos-row"><span class="pos-label">R:</span><span class="pos-value">${Math.round(state.rotation * 10) / 10}</span><span class="pos-unit">°</span></div>
+      <div class="pos-row" style="border-top:1px solid #e2e8f0;padding-top:4px;margin-top:4px;"><span class="pos-label">J1:</span><span class="pos-value">${Math.round(state.j1 * 10) / 10}</span><span class="pos-unit">°</span></div>
+      <div class="pos-row"><span class="pos-label">J2:</span><span class="pos-value">${Math.round(state.j2 * 10) / 10}</span><span class="pos-unit">°</span></div>
+      <div class="pos-row"><span class="pos-label">J3:</span><span class="pos-value">${Math.round(state.j3 * 10) / 10}</span><span class="pos-unit">°</span></div>
+      <div class="pos-row"><span class="pos-label">J4:</span><span class="pos-value">${Math.round(state.j4 * 10) / 10}</span><span class="pos-unit">°</span></div>
     `;
   };
+
+  /** Simplified inverse kinematics to approximate joint angles from X,Y,Z */
+  const updateJointAnglesFromXYZ = () => {
+    // J1 = base rotation (derived from X, Y)
+    state.j1 = Math.atan2(state.x, state.y) * (180 / Math.PI);
+    // J4 = end effector rotation
+    state.j4 = state.rotation;
+    // Simplified arm IK (Dobot has L1≈135mm, L2≈147mm)
+    const L1 = 135, L2 = 147;
+    const reach = Math.sqrt(state.x * state.x + state.y * state.y);
+    const h = state.z;
+    const d = Math.sqrt(reach * reach + h * h);
+    const dClamped = Math.min(d, L1 + L2 - 1);
+    if (dClamped > 0) {
+      const cosJ3 = (L1 * L1 + L2 * L2 - dClamped * dClamped) / (2 * L1 * L2);
+      state.j3 = Math.acos(Math.max(-1, Math.min(1, cosJ3))) * (180 / Math.PI);
+      const alpha = Math.atan2(h, reach) * (180 / Math.PI);
+      const cosB = (L1 * L1 + dClamped * dClamped - L2 * L2) / (2 * L1 * dClamped);
+      const beta = Math.acos(Math.max(-1, Math.min(1, cosB))) * (180 / Math.PI);
+      state.j2 = alpha + beta;
+    }
+  };
+
+  /** Check if a position is within workspace bounds */
+  const checkBounds = (x, y, z) => {
+    const warnings = [];
+    if (x < BOUNDS.X_MIN || x > BOUNDS.X_MAX) warnings.push(`X=${Math.round(x)} out of range [${BOUNDS.X_MIN}, ${BOUNDS.X_MAX}]`);
+    if (y < BOUNDS.Y_MIN || y > BOUNDS.Y_MAX) warnings.push(`Y=${Math.round(y)} out of range [${BOUNDS.Y_MIN}, ${BOUNDS.Y_MAX}]`);
+    if (z < BOUNDS.Z_MIN || z > BOUNDS.Z_MAX) warnings.push(`Z=${Math.round(z)} out of range [${BOUNDS.Z_MIN}, ${BOUNDS.Z_MAX}]`);
+    return warnings;
+  };
+
+  /** Clamp values to safe workspace bounds */
+  const clampToBounds = (x, y, z) => ({
+    x: Math.max(BOUNDS.X_MIN, Math.min(BOUNDS.X_MAX, x)),
+    y: Math.max(BOUNDS.Y_MIN, Math.min(BOUNDS.Y_MAX, y)),
+    z: Math.max(BOUNDS.Z_MIN, Math.min(BOUNDS.Z_MAX, z)),
+  });
 
   const getState = () => ({ ...state });
 

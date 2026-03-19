@@ -437,26 +437,122 @@ const BlocklySetup = (() => {
       }
     };
 
-    // ── VEX BLOCKS ───────────────────────────────────────────────────────
+    // ── DELTA R BLOCK (suction cup motor rotation) ──────────────────────
 
-    Blockly.Blocks['vex_drive_forward'] = {
+    Blockly.Blocks['dobot_move_delta_r'] = {
       init() {
-        this.appendValueInput('DISTANCE')
+        this.appendValueInput('DR')
           .setCheck('Number')
-          .appendField('🚗 VEX Drive Forward');
-        this.appendDummyInput().appendField('inches');
+          .appendField('🔄 Rotate End Effector ΔR');
+        this.appendDummyInput().appendField('degrees');
+        this.setInputsInline(true);
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour(COLORS.vex);
-        this.setTooltip('Drive the VEX robot forward by the given number of inches.');
+        this.setColour(COLORS.movement);
+        this.setTooltip('Rotate the suction cup / end effector by ΔR degrees (positive = counter-clockwise).');
       }
     };
 
-    Blockly.Blocks['vex_turn'] = {
+    Blockly.Blocks['dobot_get_joint_angles'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🔩 Get Joint Angles');
+        this.setOutput(true, 'String');
+        this.setColour(COLORS.movement);
+        this.setTooltip('Returns the current joint angles as (J1, J2, J3, J4).');
+      }
+    };
+
+    // ── PORT INITIALIZATION BLOCKS ─────────────────────────────────────
+
+    Blockly.Blocks['dobot_init_color_sensor'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🎨 Init Color Sensor on GP Port')
+          .appendField(new Blockly.FieldDropdown([
+            ['GP1','1'],['GP2','2'],['GP4','4'],['GP5','5'],
+          ]), 'PORT');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Initialize the color sensor on the specified GP (General Purpose) port.');
+      }
+    };
+
+    Blockly.Blocks['dobot_init_infrared'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('📡 Init Infrared Sensor on GP Port')
+          .appendField(new Blockly.FieldDropdown([
+            ['GP1','1'],['GP2','2'],['GP4','4'],['GP5','5'],
+          ]), 'PORT');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Initialize the infrared sensor on the specified GP (General Purpose) port.');
+      }
+    };
+
+    Blockly.Blocks['dobot_init_conveyor'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🏭 Init Conveyor Belt on Stepper Port')
+          .appendField(new Blockly.FieldDropdown([
+            ['STEPPER1','1'],['STEPPER2','2'],
+          ]), 'PORT');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.conveyor);
+        this.setTooltip('Initialize the conveyor belt on the specified Stepper motor port.');
+      }
+    };
+
+    // ── EMERGENCY STOP BLOCK ───────────────────────────────────────────
+
+    Blockly.Blocks['dobot_emergency_stop'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🛑 Emergency Stop');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#dc2626');
+        this.setTooltip('Immediately stop all robot movement and disable motors.');
+      }
+    };
+
+    // ── AI STARTER DRIVE BLOCKS ────────────────────────────────────────
+
+    Blockly.Blocks['ai_starter_drive_forward'] = {
+      init() {
+        this.appendValueInput('DISTANCE')
+          .setCheck('Number')
+          .appendField('🚗 Drive Forward');
+        this.appendDummyInput().appendField('mm');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.movement);
+        this.setTooltip('Drive the AI Starter robot forward by the given distance.');
+      }
+    };
+
+    Blockly.Blocks['ai_starter_drive_backward'] = {
+      init() {
+        this.appendValueInput('DISTANCE')
+          .setCheck('Number')
+          .appendField('🚗 Drive Backward');
+        this.appendDummyInput().appendField('mm');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.movement);
+        this.setTooltip('Drive the AI Starter robot backward by the given distance.');
+      }
+    };
+
+    Blockly.Blocks['ai_starter_turn'] = {
       init() {
         this.appendValueInput('DEGREES')
           .setCheck('Number')
-          .appendField('↩️ VEX Turn')
+          .appendField('↩️ Turn')
           .appendField(new Blockly.FieldDropdown([
             ['Left', 'left'],
             ['Right', 'right'],
@@ -464,29 +560,19 @@ const BlocklySetup = (() => {
         this.appendDummyInput().appendField('degrees');
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour(COLORS.vex);
-        this.setTooltip('Turn the VEX robot left or right by the given number of degrees.');
+        this.setColour(COLORS.movement);
+        this.setTooltip('Turn the AI Starter robot left or right by the given angle.');
       }
     };
 
-    Blockly.Blocks['vex_motor_spin'] = {
+    Blockly.Blocks['ai_starter_stop'] = {
       init() {
         this.appendDummyInput()
-          .appendField('⚙️ VEX Motor Port')
-          .appendField(new Blockly.FieldDropdown([
-            ['1','1'],['2','2'],['3','3'],['4','4'],
-            ['5','5'],['6','6'],['7','7'],['8','8'],
-          ]), 'PORT')
-          .appendField('Spin')
-          .appendField(new Blockly.FieldDropdown([
-            ['Forward', 'fwd'],
-            ['Backward', 'rev'],
-            ['Stop', 'stop'],
-          ]), 'DIRECTION');
+          .appendField('⏹️ Stop Driving');
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour(COLORS.vex);
-        this.setTooltip('Control a VEX motor on the specified port.');
+        this.setColour(COLORS.movement);
+        this.setTooltip('Stop the AI Starter robot wheels.');
       }
     };
   };
@@ -556,100 +642,132 @@ const BlocklySetup = (() => {
       const dir = b.getFieldValue('DIRECTION');
       return `robot.conveyor_move(${dist}, '${dir}')\n`;
     };
-    P['vex_drive_forward']   = (b) => `drive_forward(${P.valueToCode(b, 'DISTANCE', P.ORDER_NONE) || 12})\n`;
-    P['vex_turn']            = (b) => {
+    P['dobot_move_delta_r']  = (b) => {
+      const dr = P.valueToCode(b, 'DR', P.ORDER_NONE) || 0;
+      return `robot.move_delta_r(${dr})\n`;
+    };
+    P['dobot_get_joint_angles'] = () => ['robot.get_joint_angles()', P.ORDER_FUNCTION_CALL];
+    P['dobot_init_color_sensor'] = (b) => `robot.init_color_sensor(${b.getFieldValue('PORT')})\n`;
+    P['dobot_init_infrared']     = (b) => `robot.init_infrared(${b.getFieldValue('PORT')})\n`;
+    P['dobot_init_conveyor']     = (b) => `robot.init_conveyor(${b.getFieldValue('PORT')})\n`;
+    P['dobot_emergency_stop']    = () => 'robot.emergency_stop()\n';
+    P['ai_starter_drive_forward']  = (b) => `robot.drive_forward(${P.valueToCode(b, 'DISTANCE', P.ORDER_NONE) || 100})\n`;
+    P['ai_starter_drive_backward'] = (b) => `robot.drive_backward(${P.valueToCode(b, 'DISTANCE', P.ORDER_NONE) || 100})\n`;
+    P['ai_starter_turn'] = (b) => {
       const dir = b.getFieldValue('DIRECTION');
       const deg = P.valueToCode(b, 'DEGREES', P.ORDER_NONE) || 90;
-      return `vex_turn_${dir}(${deg})\n`;
+      return `robot.turn_${dir}(${deg})\n`;
     };
-    P['vex_motor_spin']      = (b) => `vex_motor(${b.getFieldValue('PORT')}, '${b.getFieldValue('DIRECTION')}')\n`;
+    P['ai_starter_stop'] = () => 'robot.stop_driving()\n';
   };
 
-  /* ---- Toolbox XML ---- */
-  const TOOLBOX = {
-    kind: 'categoryToolbox',
-    contents: [
-      {
-        kind: 'category',
-        name: '🏠 Movement',
-        colour: COLORS.movement,
-        contents: [
-          { kind: 'block', type: 'dobot_move_home' },
-          { kind: 'block', type: 'dobot_move_forward',
-            inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 10 } } } } },
-          { kind: 'block', type: 'dobot_move_backward',
-            inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 10 } } } } },
-          { kind: 'block', type: 'dobot_move_left',
-            inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 10 } } } } },
-          { kind: 'block', type: 'dobot_move_right',
-            inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 10 } } } } },
-          { kind: 'block', type: 'dobot_move_up',
-            inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 10 } } } } },
-          { kind: 'block', type: 'dobot_move_down',
-            inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 10 } } } } },
-          { kind: 'block', type: 'dobot_rotate',
-            inputs: { DEGREES: { block: { type: 'math_number', fields: { NUM: 45 } } } } },
-          { kind: 'block', type: 'dobot_move_to_point',
-            inputs: {
-              X: { block: { type: 'math_number', fields: { NUM: 0 } } },
-              Y: { block: { type: 'math_number', fields: { NUM: 0 } } },
-              Z: { block: { type: 'math_number', fields: { NUM: 0 } } },
-            }
-          },
-          { kind: 'block', type: 'dobot_set_joint_angles',
-            inputs: {
-              J1: { block: { type: 'math_number', fields: { NUM: 0 } } },
-              J2: { block: { type: 'math_number', fields: { NUM: 0 } } },
-              J3: { block: { type: 'math_number', fields: { NUM: 0 } } },
-              J4: { block: { type: 'math_number', fields: { NUM: 0 } } },
-            }
-          },
-          { kind: 'block', type: 'dobot_move_delta',
-            inputs: {
-              DX: { block: { type: 'math_number', fields: { NUM: 0 } } },
-              DY: { block: { type: 'math_number', fields: { NUM: 0 } } },
-              DZ: { block: { type: 'math_number', fields: { NUM: 0 } } },
-            }
-          },
-          { kind: 'block', type: 'dobot_get_position' },
-        ]
+  /* ---- Toolbox XML (dynamic based on robot type) ---- */
+  const getToolbox = (robotType) => {
+    const contents = [];
+
+    // ── Movement ──
+    const movementBlocks = [
+      { kind: 'block', type: 'dobot_move_home' },
+      { kind: 'block', type: 'dobot_move_to_point',
+        inputs: {
+          X: { block: { type: 'math_number', fields: { NUM: 0 } } },
+          Y: { block: { type: 'math_number', fields: { NUM: 0 } } },
+          Z: { block: { type: 'math_number', fields: { NUM: 0 } } },
+        }
       },
-      {
-        kind: 'category',
-        name: '✋ Gripper',
-        colour: COLORS.gripper,
+      { kind: 'block', type: 'dobot_move_delta',
+        inputs: {
+          DX: { block: { type: 'math_number', fields: { NUM: 0 } } },
+          DY: { block: { type: 'math_number', fields: { NUM: 0 } } },
+          DZ: { block: { type: 'math_number', fields: { NUM: 0 } } },
+        }
+      },
+      { kind: 'block', type: 'dobot_move_delta_r',
+        inputs: { DR: { block: { type: 'math_number', fields: { NUM: 0 } } } } },
+      { kind: 'block', type: 'dobot_set_joint_angles',
+        inputs: {
+          J1: { block: { type: 'math_number', fields: { NUM: 0 } } },
+          J2: { block: { type: 'math_number', fields: { NUM: 0 } } },
+          J3: { block: { type: 'math_number', fields: { NUM: 0 } } },
+          J4: { block: { type: 'math_number', fields: { NUM: 0 } } },
+        }
+      },
+      { kind: 'block', type: 'dobot_rotate',
+        inputs: { DEGREES: { block: { type: 'math_number', fields: { NUM: 45 } } } } },
+      { kind: 'block', type: 'dobot_get_position' },
+      { kind: 'block', type: 'dobot_get_joint_angles' },
+      { kind: 'block', type: 'dobot_move_forward',
+        inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 10 } } } } },
+      { kind: 'block', type: 'dobot_move_backward',
+        inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 10 } } } } },
+      { kind: 'block', type: 'dobot_move_left',
+        inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 10 } } } } },
+      { kind: 'block', type: 'dobot_move_right',
+        inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 10 } } } } },
+      { kind: 'block', type: 'dobot_move_up',
+        inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 10 } } } } },
+      { kind: 'block', type: 'dobot_move_down',
+        inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 10 } } } } },
+    ];
+
+    // AI Starter-specific drive blocks
+    if (robotType === 'ai_starter') {
+      movementBlocks.length = 0; // Clear arm-specific blocks
+      movementBlocks.push(
+        { kind: 'block', type: 'ai_starter_drive_forward',
+          inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 100 } } } } },
+        { kind: 'block', type: 'ai_starter_drive_backward',
+          inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 100 } } } } },
+        { kind: 'block', type: 'ai_starter_turn',
+          inputs: { DEGREES: { block: { type: 'math_number', fields: { NUM: 90 } } } } },
+        { kind: 'block', type: 'ai_starter_stop' },
+      );
+    }
+
+    contents.push({
+      kind: 'category', name: '🏠 Movement', colour: COLORS.movement,
+      contents: movementBlocks,
+    });
+
+    // ── Gripper (arm robots only) ──
+    if (robotType !== 'ai_starter') {
+      contents.push({
+        kind: 'category', name: '✋ Gripper', colour: COLORS.gripper,
         contents: [
           { kind: 'block', type: 'dobot_grab' },
           { kind: 'block', type: 'dobot_release' },
           { kind: 'block', type: 'dobot_claw_open' },
           { kind: 'block', type: 'dobot_claw_close' },
         ]
-      },
-      {
-        kind: 'category',
-        name: '⚡ Speed',
-        colour: COLORS.speed,
-        contents: [
-          { kind: 'block', type: 'dobot_set_speed' },
-        ]
-      },
-      {
-        kind: 'category',
-        name: '⏱️ Actions',
-        colour: COLORS.io,
-        contents: [
-          { kind: 'block', type: 'dobot_wait',
-            inputs: { SECONDS: { block: { type: 'math_number', fields: { NUM: 1 } } } } },
-          { kind: 'block', type: 'dobot_beep' },
-          { kind: 'block', type: 'dobot_print',
-            inputs: { TEXT: { block: { type: 'text', fields: { TEXT: 'Hello!' } } } } },
-          { kind: 'block', type: 'dobot_light_on' },
-        ]
-      },
-      {
-        kind: 'category',
-        name: '🤖 AI Features',
-        colour: COLORS.ai,
+      });
+    }
+
+    // ── Speed ──
+    contents.push({
+      kind: 'category', name: '⚡ Speed', colour: COLORS.speed,
+      contents: [
+        { kind: 'block', type: 'dobot_set_speed' },
+      ]
+    });
+
+    // ── Actions / I/O ──
+    contents.push({
+      kind: 'category', name: '⏱️ Actions', colour: COLORS.io,
+      contents: [
+        { kind: 'block', type: 'dobot_wait',
+          inputs: { SECONDS: { block: { type: 'math_number', fields: { NUM: 1 } } } } },
+        { kind: 'block', type: 'dobot_beep' },
+        { kind: 'block', type: 'dobot_print',
+          inputs: { TEXT: { block: { type: 'text', fields: { TEXT: 'Hello!' } } } } },
+        { kind: 'block', type: 'dobot_light_on' },
+        { kind: 'block', type: 'dobot_emergency_stop' },
+      ]
+    });
+
+    // ── AI Features (only for ai_starter and magician_ai) ──
+    if (robotType === 'ai_starter' || robotType === 'magician_ai') {
+      contents.push({
+        kind: 'category', name: '🤖 AI Features', colour: COLORS.ai,
         contents: [
           { kind: 'block', type: 'dobot_ai_detect_object' },
           { kind: 'block', type: 'dobot_ai_color_detect' },
@@ -657,83 +775,118 @@ const BlocklySetup = (() => {
           { kind: 'block', type: 'dobot_ai_follow_line' },
           { kind: 'block', type: 'dobot_ai_grab_detected' },
         ]
-      },
-      {
-        kind: 'category',
-        name: '📡 Sensors',
-        colour: COLORS.sensor,
+      });
+    }
+
+    // ── Sensors (arm robots) ──
+    if (robotType !== 'ai_starter') {
+      contents.push({
+        kind: 'category', name: '📡 Sensors', colour: COLORS.sensor,
         contents: [
+          { kind: 'block', type: 'dobot_init_color_sensor' },
+          { kind: 'block', type: 'dobot_init_infrared' },
           { kind: 'block', type: 'dobot_read_color_sensor' },
           { kind: 'block', type: 'dobot_read_infrared' },
           { kind: 'block', type: 'dobot_infrared_detected' },
         ]
-      },
-      {
-        kind: 'category',
-        name: '🏭 Conveyor Belt',
-        colour: COLORS.conveyor,
+      });
+    }
+
+    // ── Conveyor Belt (arm robots) ──
+    if (robotType !== 'ai_starter') {
+      contents.push({
+        kind: 'category', name: '🏭 Conveyor Belt', colour: COLORS.conveyor,
         contents: [
+          { kind: 'block', type: 'dobot_init_conveyor' },
           { kind: 'block', type: 'dobot_conveyor_speed',
             inputs: { SPEED: { block: { type: 'math_number', fields: { NUM: 50 } } } } },
           { kind: 'block', type: 'dobot_conveyor_stop' },
           { kind: 'block', type: 'dobot_conveyor_distance',
             inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 100 } } } } },
         ]
-      },
-      {
-        kind: 'category',
-        name: '🎮 VEX Robot',
-        colour: COLORS.vex,
-        contents: [
-          { kind: 'block', type: 'vex_drive_forward',
-            inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 12 } } } } },
-          { kind: 'block', type: 'vex_turn',
-            inputs: { DEGREES: { block: { type: 'math_number', fields: { NUM: 90 } } } } },
-          { kind: 'block', type: 'vex_motor_spin' },
-        ]
-      },
-      { kind: 'sep' },
-      {
-        kind: 'category', name: '🔁 Control', colour: COLORS.control,
-        contents: [
-          { kind: 'block', type: 'controls_repeat_ext',
-            inputs: { TIMES: { block: { type: 'math_number', fields: { NUM: 5 } } } } },
-          { kind: 'block', type: 'controls_whileUntil' },
-          { kind: 'block', type: 'controls_if' },
-          { kind: 'block', type: 'controls_ifelse' },
-          { kind: 'block', type: 'controls_for' },
-        ]
-      },
-      {
-        kind: 'category', name: '🔢 Numbers', colour: COLORS.math,
-        contents: [
-          { kind: 'block', type: 'math_number' },
-          { kind: 'block', type: 'math_arithmetic' },
-          { kind: 'block', type: 'math_random_int' },
-        ]
-      },
-      {
-        kind: 'category', name: '📝 Text', colour: '#64748b',
-        contents: [
-          { kind: 'block', type: 'text' },
-          { kind: 'block', type: 'text_join' },
-          { kind: 'block', type: 'text_print' },
-        ]
-      },
-      {
-        kind: 'category', name: '📦 Variables', colour: '#7c3aed',
-        custom: 'VARIABLE',
-      },
-    ]
+      });
+    }
+
+    // Separator
+    contents.push({ kind: 'sep' });
+
+    // ── Logic (conditionals, comparisons, booleans) ──
+    contents.push({
+      kind: 'category', name: '🔀 Logic', colour: '#5b80a5',
+      contents: [
+        { kind: 'block', type: 'controls_if' },
+        { kind: 'block', type: 'controls_ifelse' },
+        { kind: 'block', type: 'logic_compare' },
+        { kind: 'block', type: 'logic_operation' },
+        { kind: 'block', type: 'logic_negate' },
+        { kind: 'block', type: 'logic_boolean' },
+      ]
+    });
+
+    // ── Control (loops) ──
+    contents.push({
+      kind: 'category', name: '🔁 Loops', colour: COLORS.control,
+      contents: [
+        { kind: 'block', type: 'controls_repeat_ext',
+          inputs: { TIMES: { block: { type: 'math_number', fields: { NUM: 5 } } } } },
+        { kind: 'block', type: 'controls_whileUntil' },
+        { kind: 'block', type: 'controls_for' },
+      ]
+    });
+
+    // ── Math ──
+    contents.push({
+      kind: 'category', name: '🔢 Math', colour: COLORS.math,
+      contents: [
+        { kind: 'block', type: 'math_number' },
+        { kind: 'block', type: 'math_arithmetic' },
+        { kind: 'block', type: 'math_single' },
+        { kind: 'block', type: 'math_round' },
+        { kind: 'block', type: 'math_modulo' },
+        { kind: 'block', type: 'math_constrain',
+          inputs: {
+            LOW: { block: { type: 'math_number', fields: { NUM: 0 } } },
+            HIGH: { block: { type: 'math_number', fields: { NUM: 200 } } },
+          }
+        },
+        { kind: 'block', type: 'math_random_int' },
+      ]
+    });
+
+    // ── Text ──
+    contents.push({
+      kind: 'category', name: '📝 Text', colour: '#64748b',
+      contents: [
+        { kind: 'block', type: 'text' },
+        { kind: 'block', type: 'text_join' },
+        { kind: 'block', type: 'text_print' },
+      ]
+    });
+
+    // ── Variables ──
+    contents.push({
+      kind: 'category', name: '📦 Variables', colour: '#7c3aed',
+      custom: 'VARIABLE',
+    });
+
+    // ── Functions (custom functions with inputs) ──
+    contents.push({
+      kind: 'category', name: '🧩 Functions', colour: '#9333ea',
+      custom: 'PROCEDURE',
+    });
+
+    return { kind: 'categoryToolbox', contents };
   };
 
   /* ---- Initialize Blockly workspace ---- */
-  const init = (containerId) => {
+  const init = (containerId, robotType) => {
     defineBlocks();
     defineGenerators();
 
+    const toolbox = getToolbox(robotType || 'magician');
+
     workspace = Blockly.inject(containerId, {
-      toolbox: TOOLBOX,
+      toolbox: toolbox,
       grid: {
         spacing: 20,
         length: 3,
@@ -762,6 +915,13 @@ const BlocklySetup = (() => {
     }
 
     return workspace;
+  };
+
+  /** Update the toolbox when robot type changes */
+  const updateToolbox = (robotType) => {
+    if (!workspace) return;
+    const toolbox = getToolbox(robotType || 'magician');
+    workspace.updateToolbox(toolbox);
   };
 
   const addStarterBlocks = () => {
@@ -797,5 +957,5 @@ const BlocklySetup = (() => {
     Blockly.Xml.domToWorkspace(xml, workspace);
   };
 
-  return { init, getWorkspace, getPythonCode, getWorkspaceXml, loadWorkspaceXml };
+  return { init, updateToolbox, getWorkspace, getPythonCode, getWorkspaceXml, loadWorkspaceXml };
 })();

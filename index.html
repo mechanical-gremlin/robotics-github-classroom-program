@@ -48,7 +48,7 @@
         <span>GitHub Classroom Program</span>
       </h1>
     </div>
-    <p class="welcome-subtitle">Code Dobot &amp; VEX robots with visual blocks, event sheets, and Python.</p>
+    <p class="welcome-subtitle">Code Dobot robots with visual blocks, event sheets, and Python.</p>
 
     <!-- Role Selector -->
     <div class="role-selector">
@@ -141,11 +141,6 @@
         <span class="nav-label">Repositories</span>
       </button>
 
-      <button class="nav-item" data-view="vex">
-        <span class="nav-icon">🎮</span>
-        <span class="nav-label">VEX Upload</span>
-      </button>
-
       <div class="nav-section-label" style="margin-top:8px;">Teacher</div>
 
       <button class="nav-item hidden" id="teacher-nav-item" data-view="teacher">
@@ -171,6 +166,7 @@
           <div class="status-sub" id="robot-status-sub" title="Simulator Mode runs all commands visually on screen without a physical robot connected.">Simulator Mode</div>
         </div>
         <button class="btn btn-ghost btn-icon" id="usb-help-btn" title="How to connect your robot" style="color:#94a3b8;font-size:14px;padding:4px;">❓</button>
+        <button class="btn btn-ghost btn-icon" onclick="window.showErrorHelp()" title="Error help &amp; troubleshooting" style="color:#94a3b8;font-size:14px;padding:4px;">🔧</button>
       </div>
       <button class="btn btn-ghost" style="color:#94a3b8;font-size:13px;" id="logout-btn">
         ↩ Sign Out
@@ -256,6 +252,7 @@
         <button id="generate-python-btn" class="btn btn-outline btn-sm">🐍 Generate Python</button>
         <button id="run-simulator-btn" class="btn btn-success btn-sm">▶ Run</button>
         <button id="stop-simulator-btn" class="btn btn-danger btn-sm">⏹ Stop</button>
+        <button id="emergency-stop-btn" class="btn btn-sm" style="background:#dc2626;color:white;font-weight:700;border:2px solid #991b1b;" title="Emergency Stop (Escape key)">🛑 E-STOP</button>
         <button id="reset-simulator-btn" class="btn btn-outline btn-sm">↺ Reset</button>
         <button id="save-btn-editor" class="btn btn-primary btn-sm" onclick="App.saveCurrentFile()">💾 Save</button>
       </div>
@@ -308,10 +305,12 @@
                 <button class="py-cmd-btn" data-insert="robot.move_up(10)">robot.move_up(mm)</button>
                 <button class="py-cmd-btn" data-insert="robot.move_down(10)">robot.move_down(mm)</button>
                 <button class="py-cmd-btn" data-insert="robot.move_delta(dx, dy, dz)">robot.move_delta(dx, dy, dz)</button>
+                <button class="py-cmd-btn" data-insert="robot.move_delta_r(45)">robot.move_delta_r(deg)</button>
                 <button class="py-cmd-btn" data-insert="robot.rotate_left(45)">robot.rotate_left(deg)</button>
                 <button class="py-cmd-btn" data-insert="robot.rotate_right(45)">robot.rotate_right(deg)</button>
                 <button class="py-cmd-btn" data-insert="robot.set_joint_angles(j1, j2, j3, j4)">robot.set_joint_angles(…)</button>
                 <button class="py-cmd-btn" data-insert="robot.get_position()">robot.get_position()</button>
+                <button class="py-cmd-btn" data-insert="robot.get_joint_angles()">robot.get_joint_angles()</button>
                 <div class="py-cmd-section">Gripper</div>
                 <button class="py-cmd-btn" data-insert="robot.grab()">robot.grab()</button>
                 <button class="py-cmd-btn" data-insert="robot.release()">robot.release()</button>
@@ -323,10 +322,13 @@
                 <button class="py-cmd-btn" data-insert="robot.beep()">robot.beep()</button>
                 <button class="py-cmd-btn" data-insert="robot.light('on')">robot.light(state)</button>
                 <div class="py-cmd-section">Sensors</div>
+                <button class="py-cmd-btn" data-insert="robot.init_color_sensor(1)">robot.init_color_sensor(port)</button>
+                <button class="py-cmd-btn" data-insert="robot.init_infrared(1)">robot.init_infrared(port)</button>
                 <button class="py-cmd-btn" data-insert="robot.read_color_sensor()">robot.read_color_sensor()</button>
                 <button class="py-cmd-btn" data-insert="robot.read_infrared()">robot.read_infrared()</button>
                 <button class="py-cmd-btn" data-insert="robot.infrared_detected()">robot.infrared_detected()</button>
                 <div class="py-cmd-section">Conveyor Belt</div>
+                <button class="py-cmd-btn" data-insert="robot.init_conveyor(1)">robot.init_conveyor(port)</button>
                 <button class="py-cmd-btn" data-insert="robot.conveyor_speed(50, 'forward')">robot.conveyor_speed(…)</button>
                 <button class="py-cmd-btn" data-insert="robot.conveyor_stop()">robot.conveyor_stop()</button>
                 <button class="py-cmd-btn" data-insert="robot.conveyor_move(100, 'forward')">robot.conveyor_move(…)</button>
@@ -336,6 +338,9 @@
                 <button class="py-cmd-btn" data-insert="robot.ai_detect_face()">robot.ai_detect_face()</button>
                 <button class="py-cmd-btn" data-insert="robot.ai_grab_detected()">robot.ai_grab_detected()</button>
                 <button class="py-cmd-btn" data-insert="robot.ai_follow_line()">robot.ai_follow_line()</button>
+                <div class="py-cmd-section">Safety</div>
+                <button class="py-cmd-btn" data-insert="robot.emergency_stop()">robot.emergency_stop()</button>
+                <button class="py-cmd-btn" data-insert="robot.reset_emergency()">robot.reset_emergency()</button>
               </div>
             </div>
             <!-- Editor Area -->
@@ -380,12 +385,16 @@
 
           <!-- Robot Position Display -->
           <div class="position-display">
-            <div class="position-display-header">📐 Robot Position</div>
+            <div class="position-display-header">📐 Position &amp; Joint Angles</div>
             <div id="sim-position-display" class="position-display-grid">
               <div class="pos-row"><span class="pos-label">X:</span><span class="pos-value">0</span><span class="pos-unit">mm</span></div>
               <div class="pos-row"><span class="pos-label">Y:</span><span class="pos-value">0</span><span class="pos-unit">mm</span></div>
               <div class="pos-row"><span class="pos-label">Z:</span><span class="pos-value">50</span><span class="pos-unit">mm</span></div>
               <div class="pos-row"><span class="pos-label">R:</span><span class="pos-value">0</span><span class="pos-unit">°</span></div>
+              <div class="pos-row" style="border-top:1px solid #e2e8f0;padding-top:4px;margin-top:4px;"><span class="pos-label">J1:</span><span class="pos-value">0</span><span class="pos-unit">°</span></div>
+              <div class="pos-row"><span class="pos-label">J2:</span><span class="pos-value">45</span><span class="pos-unit">°</span></div>
+              <div class="pos-row"><span class="pos-label">J3:</span><span class="pos-value">45</span><span class="pos-unit">°</span></div>
+              <div class="pos-row"><span class="pos-label">J4:</span><span class="pos-value">0</span><span class="pos-unit">°</span></div>
             </div>
           </div>
 
@@ -641,7 +650,7 @@
             </div>
             <div>
               <div style="font-weight:700;margin-bottom:4px;">📚 Supported Robots</div>
-              <div class="text-muted">Dobot Magician, Dobot AI Starter, Dobot Magician AI Kit, VEX</div>
+              <div class="text-muted">Dobot Magician, Dobot AI Starter, Dobot Magician AI Kit</div>
             </div>
             <div>
               <div style="font-weight:700;margin-bottom:4px;">💻 Coding Modes</div>
@@ -788,6 +797,95 @@
 
     // Trigger settings update when settings view opens
     document.querySelector('[data-view="settings"]')?.addEventListener('click', updateSettingsUser);
+
+    // ── Emergency Stop Button + Escape Key ──
+    const triggerEmergencyStop = () => {
+      if (typeof RobotSimulator !== 'undefined') {
+        RobotSimulator.stop();
+        RobotSimulator.commands.emergency_stop?.();
+      }
+      // Flash screen border red
+      document.body.style.outline = '4px solid #dc2626';
+      setTimeout(() => { document.body.style.outline = ''; }, 1500);
+    };
+
+    document.getElementById('emergency-stop-btn')?.addEventListener('click', triggerEmergencyStop);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        triggerEmergencyStop();
+      }
+    });
+
+    // ── Error Help Modal ──
+    window.showErrorHelp = () => {
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal" style="max-width:640px;">
+          <div class="modal-header">
+            <div class="modal-title">🔧 Common Errors &amp; Troubleshooting Guide</div>
+            <button class="btn btn-ghost btn-icon" onclick="this.closest('.modal-overlay').remove()">✕</button>
+          </div>
+          <div class="modal-body" style="font-size:13px;line-height:1.7;max-height:70vh;overflow-y:auto;">
+            <div style="margin-bottom:16px;">
+              <div style="font-weight:700;color:#dc2626;margin-bottom:4px;">🔴 "No Dobot found" / Connection Failed</div>
+              <div style="background:#fef2f2;padding:10px;border-radius:6px;">
+                <strong>Cause:</strong> Robot is not connected or driver is missing.<br/>
+                <strong>Fix:</strong> 1) Check USB cable is firmly connected. 2) Power on the robot. 3) Install driver: <code>pip install pydobot pyserial</code>. 4) On Windows install the Silicon Labs CP210x driver. 5) Close any other program using the COM port (DobotStudio, etc.)
+              </div>
+            </div>
+            <div style="margin-bottom:16px;">
+              <div style="font-weight:700;color:#dc2626;margin-bottom:4px;">🔴 "Emergency stop is active"</div>
+              <div style="background:#fef2f2;padding:10px;border-radius:6px;">
+                <strong>Cause:</strong> The emergency stop was triggered (Escape key or E-STOP button).<br/>
+                <strong>Fix:</strong> Call <code>robot.reset_emergency()</code> in your Python code, or click the ↺ Reset button in the simulator.
+              </div>
+            </div>
+            <div style="margin-bottom:16px;">
+              <div style="font-weight:700;color:#d97706;margin-bottom:4px;">🟡 "BOUNDS WARNING" — Position out of range</div>
+              <div style="background:#fffbeb;padding:10px;border-radius:6px;">
+                <strong>Cause:</strong> Your program tried to move the arm outside the Dobot's safe workspace (X: ±320mm, Y: ±320mm, Z: -75 to 200mm).<br/>
+                <strong>Fix:</strong> Check your coordinates. The position is automatically clamped to safe bounds. Use <code>robot.get_position()</code> to check the current location before moving.
+              </div>
+            </div>
+            <div style="margin-bottom:16px;">
+              <div style="font-weight:700;color:#d97706;margin-bottom:4px;">🟡 "Joint angle move not supported"</div>
+              <div style="background:#fffbeb;padding:10px;border-radius:6px;">
+                <strong>Cause:</strong> Older Dobot firmware may not support direct joint control.<br/>
+                <strong>Fix:</strong> Update the Dobot firmware using DobotStudio, or use <code>robot.move_to(x, y, z)</code> instead.
+              </div>
+            </div>
+            <div style="margin-bottom:16px;">
+              <div style="font-weight:700;color:#d97706;margin-bottom:4px;">🟡 "Conveyor/Sensor not supported by firmware"</div>
+              <div style="background:#fffbeb;padding:10px;border-radius:6px;">
+                <strong>Cause:</strong> Sensor or conveyor may not be initialized or firmware is outdated.<br/>
+                <strong>Fix:</strong> 1) Initialize the sensor/conveyor first with <code>robot.init_color_sensor(port)</code> or <code>robot.init_conveyor(port)</code>. 2) Check the wiring to the correct GP or Stepper port.
+              </div>
+            </div>
+            <div style="margin-bottom:16px;">
+              <div style="font-weight:700;color:#dc2626;margin-bottom:4px;">🔴 "ModuleNotFoundError: No module named 'pydobot'"</div>
+              <div style="background:#fef2f2;padding:10px;border-radius:6px;">
+                <strong>Cause:</strong> The pydobot Python package is not installed.<br/>
+                <strong>Fix:</strong> Run <code>pip install pydobot pyserial</code> in your terminal. If pip is restricted, ask your teacher to install it on the computer.
+              </div>
+            </div>
+            <div style="margin-bottom:16px;">
+              <div style="font-weight:700;color:#1e40af;margin-bottom:4px;">🔵 Safety Tips</div>
+              <div style="background:#eff6ff;padding:10px;border-radius:6px;">
+                • Always start with <code>robot.move_home()</code> to reset the arm position.<br/>
+                • Press <strong>Escape</strong> at any time for emergency stop.<br/>
+                • Keep hands away from the robot arm while it is moving.<br/>
+                • Use <code>robot.set_speed('slow')</code> when testing new programs.<br/>
+                • Initialize sensors with <code>init_color_sensor()</code> or <code>init_infrared()</code> before reading them.
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+      document.body.appendChild(overlay);
+    };
   });
 </script>
 

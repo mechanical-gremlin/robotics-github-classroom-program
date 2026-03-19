@@ -42,6 +42,14 @@ _IR_DETECTION_THRESHOLD_MM = 100
 # Default conveyor belt speed (mm/s)
 _DEFAULT_CONVEYOR_SPEED = 50
 
+# Dobot Magician workspace bounds (mm) — prevents motor damage
+_WORKSPACE_BOUNDS = {
+    'x_min': -320, 'x_max': 320,
+    'y_min': -320, 'y_max': 320,
+    'z_min': -75,  'z_max': 200,
+    'r_min': -135, 'r_max': 135,
+}
+
 
 class DobotRobot:
     """
@@ -80,6 +88,10 @@ class DobotRobot:
         self._r = 0.0  # rotation
         self._gripper_active = False
         self._callbacks = {}
+        self._emergency_stopped = False
+        self._color_sensor_port = None
+        self._infrared_port = None
+        self._conveyor_port = None
 
         if _HAS_PYDOBOT:
             try:
@@ -120,10 +132,33 @@ class DobotRobot:
             pass
         return None
 
+    def _check_bounds(self):
+        """Check if current position is within workspace bounds and warn/clamp."""
+        b = _WORKSPACE_BOUNDS
+        warnings = []
+        if self._x < b['x_min'] or self._x > b['x_max']:
+            warnings.append(f"X={self._x:.1f} out of range [{b['x_min']}, {b['x_max']}]")
+            self._x = max(b['x_min'], min(b['x_max'], self._x))
+        if self._y < b['y_min'] or self._y > b['y_max']:
+            warnings.append(f"Y={self._y:.1f} out of range [{b['y_min']}, {b['y_max']}]")
+            self._y = max(b['y_min'], min(b['y_max'], self._y))
+        if self._z < b['z_min'] or self._z > b['z_max']:
+            warnings.append(f"Z={self._z:.1f} out of range [{b['z_min']}, {b['z_max']}]")
+            self._z = max(b['z_min'], min(b['z_max'], self._z))
+        if warnings:
+            for w in warnings:
+                self._log(f'⚠️  BOUNDS WARNING: {w} — clamped to safe range')
+
+    def _check_emergency(self):
+        """Raise an error if the emergency stop has been activated."""
+        if self._emergency_stopped:
+            raise RuntimeError('Emergency stop is active. Call robot.reset_emergency() to resume.')
+
     # ── Movement ──────────────────────────────────────────────────────
 
     def move_home(self):
         """Move the robot arm back to its home/starting position."""
+        self._check_emergency()
         self._sim_log('move_home()')
         self._x, self._y, self._z, self._r = 0.0, 0.0, 50.0, 0.0
         if not self._sim and self._device:
@@ -131,55 +166,70 @@ class DobotRobot:
 
     def move_forward(self, mm: float = 10):
         """Move the arm forward by *mm* millimeters."""
+        self._check_emergency()
         self._sim_log(f'move_forward({mm}mm)')
         self._y += float(mm)
+        self._check_bounds()
         if not self._sim and self._device:
             self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
 
     def move_backward(self, mm: float = 10):
         """Move the arm backward by *mm* millimeters."""
+        self._check_emergency()
         self._sim_log(f'move_backward({mm}mm)')
         self._y -= float(mm)
+        self._check_bounds()
         if not self._sim and self._device:
             self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
 
     def move_left(self, mm: float = 10):
         """Move the arm to the left by *mm* millimeters."""
+        self._check_emergency()
         self._sim_log(f'move_left({mm}mm)')
         self._x -= float(mm)
+        self._check_bounds()
         if not self._sim and self._device:
             self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
 
     def move_right(self, mm: float = 10):
         """Move the arm to the right by *mm* millimeters."""
+        self._check_emergency()
         self._sim_log(f'move_right({mm}mm)')
         self._x += float(mm)
+        self._check_bounds()
         if not self._sim and self._device:
             self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
 
     def move_up(self, mm: float = 10):
         """Raise the arm by *mm* millimeters."""
+        self._check_emergency()
         self._sim_log(f'move_up({mm}mm)')
         self._z += float(mm)
+        self._check_bounds()
         if not self._sim and self._device:
             self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
 
     def move_down(self, mm: float = 10):
         """Lower the arm by *mm* millimeters."""
+        self._check_emergency()
         self._sim_log(f'move_down({mm}mm)')
         self._z = max(self._z - float(mm), 0)
+        self._check_bounds()
         if not self._sim and self._device:
             self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
 
     def move_to(self, x: float, y: float, z: float):
         """Move the arm to exact coordinates (x, y, z in mm)."""
+        self._check_emergency()
         self._sim_log(f'move_to({x}, {y}, {z})')
         self._x, self._y, self._z = float(x), float(y), float(z)
+        self._check_bounds()
         if not self._sim and self._device:
             self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
 
     def rotate_left(self, degrees: float = 45):
         """Rotate the base of the arm to the left by *degrees*."""
+        self._check_emergency()
         self._sim_log(f'rotate_left({degrees}°)')
         self._r += float(degrees)
         if not self._sim and self._device:
@@ -187,6 +237,7 @@ class DobotRobot:
 
     def rotate_right(self, degrees: float = 45):
         """Rotate the base of the arm to the right by *degrees*."""
+        self._check_emergency()
         self._sim_log(f'rotate_right({degrees}°)')
         self._r -= float(degrees)
         if not self._sim and self._device:
@@ -233,6 +284,20 @@ class DobotRobot:
         self._x += float(dx)
         self._y += float(dy)
         self._z += float(dz)
+        self._check_bounds()
+        if not self._sim and self._device:
+            self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
+
+    def move_delta_r(self, dr: float = 0):
+        """
+        Rotate the end effector (suction cup motor / J4) by *dr* degrees
+        relative to its current rotation.
+
+        Args:
+            dr: Change in rotation (degrees). Positive = counter-clockwise.
+        """
+        self._sim_log(f'move_delta_r({dr}°)')
+        self._r += float(dr)
         if not self._sim and self._device:
             self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
 
@@ -486,6 +551,105 @@ class DobotRobot:
             # In real mode, read camera and steer
             time.sleep(0.1)
         self._log('[AI] Line following done.')
+
+    # ── Safety ─────────────────────────────────────────────────────────
+
+    def emergency_stop(self):
+        """
+        Immediately stop all robot movement and disable motors.
+        This is a safety feature to prevent damage to the robot and surroundings.
+        Call reset_emergency() to resume normal operation.
+        """
+        self._emergency_stopped = True
+        self._log('🛑 EMERGENCY STOP ACTIVATED — all movement halted')
+        if not self._sim and self._device:
+            try:
+                self._device.set_queued_cmd_stop_exec()
+                self._device.set_queued_cmd_clear()
+            except Exception:
+                pass
+        self.release()
+
+    def reset_emergency(self):
+        """
+        Reset the emergency stop and allow the robot to move again.
+        The robot will need to be re-homed after an emergency stop.
+        """
+        self._emergency_stopped = False
+        self._log('✅ Emergency stop cleared — robot ready')
+
+    # ── Port Initialization ───────────────────────────────────────────
+
+    def init_color_sensor(self, gp_port: int = 1):
+        """
+        Initialize the color sensor on the specified GP (General Purpose) port.
+
+        Args:
+            gp_port: GP port number (1, 2, 4, or 5).
+        """
+        self._color_sensor_port = int(gp_port)
+        self._sim_log(f'init_color_sensor(GP{gp_port})')
+        if not self._sim and self._device:
+            try:
+                self._device.set_color_sensor(True, self._color_sensor_port)
+            except Exception:
+                self._log(f'[SENSOR] Color sensor init on GP{gp_port} not supported by firmware.')
+
+    def init_infrared(self, gp_port: int = 1):
+        """
+        Initialize the infrared sensor on the specified GP (General Purpose) port.
+
+        Args:
+            gp_port: GP port number (1, 2, 4, or 5).
+        """
+        self._infrared_port = int(gp_port)
+        self._sim_log(f'init_infrared(GP{gp_port})')
+        if not self._sim and self._device:
+            try:
+                self._device.set_ir_switch(True, self._infrared_port)
+            except Exception:
+                self._log(f'[SENSOR] Infrared init on GP{gp_port} not supported by firmware.')
+
+    def init_conveyor(self, stepper_port: int = 1):
+        """
+        Initialize the conveyor belt on the specified Stepper motor port.
+
+        Args:
+            stepper_port: Stepper port number (1 or 2).
+        """
+        self._conveyor_port = int(stepper_port)
+        self._sim_log(f'init_conveyor(STEPPER{stepper_port})')
+        self._log(f'[CONVEYOR] Conveyor belt initialized on STEPPER{stepper_port}')
+
+    # ── AI Starter Drive Methods ──────────────────────────────────────
+
+    def drive_forward(self, mm: float = 100):
+        """Drive the AI Starter robot forward by *mm* millimeters."""
+        self._check_emergency()
+        self._sim_log(f'drive_forward({mm}mm)')
+        self._y += float(mm)
+
+    def drive_backward(self, mm: float = 100):
+        """Drive the AI Starter robot backward by *mm* millimeters."""
+        self._check_emergency()
+        self._sim_log(f'drive_backward({mm}mm)')
+        self._y -= float(mm)
+
+    def turn_left(self, degrees: float = 90):
+        """Turn the AI Starter robot to the left by *degrees*."""
+        self._check_emergency()
+        self._sim_log(f'turn_left({degrees}°)')
+        self._r += float(degrees)
+
+    def turn_right(self, degrees: float = 90):
+        """Turn the AI Starter robot to the right by *degrees*."""
+        self._check_emergency()
+        self._sim_log(f'turn_right({degrees}°)')
+        self._r -= float(degrees)
+
+    def stop_driving(self):
+        """Stop the AI Starter robot wheels."""
+        self._sim_log('stop_driving()')
 
     # ── Event Callbacks ───────────────────────────────────────────────
 

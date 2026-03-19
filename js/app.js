@@ -333,7 +333,7 @@ const App = (() => {
       return;
     }
     try {
-      BlocklySetup.init('blockly-container');
+      BlocklySetup.init('blockly-container', state.selectedRobot);
       state.blocklyReady = true;
       document.getElementById('blockly-loading')?.classList.add('hidden');
 
@@ -526,6 +526,16 @@ const App = (() => {
       case 'dobot_set_joint_angles': cmds.push({ type: 'set_joint_angles', args: [numVal(block, 'J1'), numVal(block, 'J2'), numVal(block, 'J3'), numVal(block, 'J4')] }); break;
       case 'dobot_move_delta':     cmds.push({ type: 'move_delta', args: [numVal(block, 'DX'), numVal(block, 'DY'), numVal(block, 'DZ')] }); break;
       case 'dobot_get_position':   cmds.push({ type: 'get_position', args: [] }); break;
+      case 'dobot_move_delta_r':   cmds.push({ type: 'move_delta_r', args: [numVal(block, 'DR')] }); break;
+      case 'dobot_get_joint_angles': cmds.push({ type: 'get_joint_angles', args: [] }); break;
+      case 'dobot_emergency_stop': cmds.push({ type: 'emergency_stop', args: [] }); break;
+      case 'dobot_init_color_sensor': cmds.push({ type: 'init_color_sensor', args: [block.getFieldValue('PORT')] }); break;
+      case 'dobot_init_infrared':  cmds.push({ type: 'init_infrared', args: [block.getFieldValue('PORT')] }); break;
+      case 'dobot_init_conveyor':  cmds.push({ type: 'init_conveyor', args: [block.getFieldValue('PORT')] }); break;
+      case 'ai_starter_drive_forward': cmds.push({ type: 'drive_forward', args: [numVal(block, 'DISTANCE')] }); break;
+      case 'ai_starter_drive_backward': cmds.push({ type: 'drive_backward', args: [numVal(block, 'DISTANCE')] }); break;
+      case 'ai_starter_turn': cmds.push({ type: block.getFieldValue('DIRECTION') === 'left' ? 'turn_left' : 'turn_right', args: [numVal(block, 'DEGREES')] }); break;
+      case 'ai_starter_stop': cmds.push({ type: 'stop_driving', args: [] }); break;
     }
     return cmds;
   };
@@ -696,9 +706,8 @@ const App = (() => {
   const renderRobotSelector = () => {
     const robots = [
       { id: 'magician',    icon: '🦾', name: 'Dobot Magician',       desc: 'Classic 4-axis robot arm with suction & claw' },
-      { id: 'ai_starter',  icon: '🤖', name: 'Dobot AI Starter',     desc: 'AI-powered mobile robot with camera' },
+      { id: 'ai_starter',  icon: '🤖', name: 'Dobot AI Starter',     desc: 'AI-powered wheeled robot with camera' },
       { id: 'magician_ai', icon: '🧠', name: 'Dobot Magician + AI',  desc: 'Magician arm with AI camera kit' },
-      { id: 'vex',         icon: '🎮', name: 'VEX Robot',            desc: 'VEX IQ or V5 robotics system' },
     ];
 
     const container = document.getElementById('robot-cards');
@@ -719,13 +728,17 @@ const App = (() => {
     localStorage.setItem('selected_robot', id);
     renderRobotSelector();
     updateRobotStatus();
+    // Update Blockly toolbox for new robot type
+    if (state.blocklyReady) {
+      BlocklySetup.updateToolbox(id);
+    }
     toast('Robot Selected', `Now coding for: ${id}`, 'success', 2000);
   };
 
   const updateRobotStatus = () => {
     const label = document.getElementById('robot-status-label');
     const sub = document.getElementById('robot-status-sub');
-    const robots = { magician: 'Dobot Magician', ai_starter: 'Dobot AI Starter', magician_ai: 'Magician + AI', vex: 'VEX Robot' };
+    const robots = { magician: 'Dobot Magician', ai_starter: 'Dobot AI Starter', magician_ai: 'Magician + AI' };
     if (label) label.textContent = robots[state.selectedRobot] || 'No Robot';
     if (sub) sub.textContent = 'Simulator Mode';
   };
@@ -816,6 +829,10 @@ const App = (() => {
     // Run in simulator
     document.getElementById('run-simulator-btn')?.addEventListener('click', runInSimulator);
     document.getElementById('stop-simulator-btn')?.addEventListener('click', () => RobotSimulator.stop());
+    document.getElementById('emergency-stop-btn')?.addEventListener('click', () => {
+      RobotSimulator.stop();
+      RobotSimulator.commands.emergency_stop?.();
+    });
     document.getElementById('reset-simulator-btn')?.addEventListener('click', () => RobotSimulator.reset());
 
     // Simulator init

@@ -15,9 +15,15 @@ Usage:
     robot.move_up(30)
     robot.move_backward(50)
     robot.release()
+
+Manual connection (if auto-detect fails):
+    from dobot_wrapper import DobotRobot
+
+    print(DobotRobot.list_ports())   # see available serial ports
+    robot = DobotRobot(port='COM3')  # connect to a specific port
 """
 
 from .robot import DobotRobot
 
 __all__ = ['DobotRobot']
-__version__ = '1.0.0'
+__version__ = '1.1.0'

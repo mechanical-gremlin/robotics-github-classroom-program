@@ -667,7 +667,10 @@
           <div style="background:#f0fdf4;border-radius:8px;padding:16px;font-size:13px;">
             <div style="font-weight:700;margin-bottom:8px;">🛠️ Dobot Python Wrapper</div>
             <div class="text-muted mb-2">To run generated code on a real Dobot, install the wrapper:</div>
-            <pre style="background:#1e1e1e;color:#68d391;padding:10px;border-radius:6px;font-size:12px;margin:0;">pip install dobot-magician-wrapper</pre>
+            <pre style="background:#1e1e1e;color:#68d391;padding:10px;border-radius:6px;font-size:12px;margin:0;">pip install pydobot pyserial</pre>
+            <div class="text-muted mt-2" style="font-size:12px;">
+              If pip is blocked by admin: <code style="background:#e2e8f0;padding:2px 6px;border-radius:4px;font-size:11px;">pip install --user pydobot pyserial</code>
+            </div>
             <div class="text-muted mt-2">
               Then run your generated <code>.py</code> file from the Command Prompt or Terminal.
             </div>
@@ -764,17 +767,24 @@
               <li>Connect the Dobot Magician to your computer using the <strong>USB cable</strong> included with the robot.</li>
               <li>Turn <strong>ON</strong> the Dobot using the power switch on the base.</li>
               <li>Wait for the robot to <strong>initialize</strong> (it will move slightly and the LED will turn solid).</li>
-              <li>Install the Python driver: <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;">pip install pydobot pyserial</code></li>
+              <li>Install the Python driver: <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;">pip install pydobot pyserial</code><br/>
+                  <span style="font-size:12px;color:#64748b;">If blocked by admin, try: <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;">pip install --user pydobot pyserial</code></span></li>
               <li>Run your Python program from the command line — the wrapper will <strong>auto-detect</strong> the USB port.</li>
             </ol>
+            <div style="background:#eff6ff;border-radius:8px;padding:12px;margin-bottom:12px;">
+              <strong>🔧 Manual Port Selection:</strong> If auto-detect does not find the robot, you can list ports and connect manually:
+              <pre style="background:#1e1e1e;color:#68d391;padding:10px;border-radius:6px;font-size:12px;margin:8px 0 0;">from dobot_wrapper import DobotRobot\n\nprint(DobotRobot.list_ports())   # see available ports\nrobot = DobotRobot(port='COM3')  # connect to your port</pre>
+            </div>
             <div style="background:#fef3c7;border-radius:8px;padding:12px;margin-bottom:12px;">
               <strong>⚠️ Simulator Mode:</strong> When no physical robot is connected, commands run visually in the on-screen simulator.
               This lets you develop and test programs without a robot. Your code will work the same way on a real Dobot.
             </div>
             <div style="background:#f0fdf4;border-radius:8px;padding:12px;">
-              <strong>💡 Troubleshooting:</strong> If the robot is not detected, check that the USB cable is firmly connected,
-              the power is on, and no other program (like DobotStudio) is using the port.
-              On Windows, you may need to install the <strong>Silicon Labs CP210x USB driver</strong>.
+              <strong>💡 Troubleshooting:</strong><br/>
+              • Check that the USB cable is firmly connected and the power is on.<br/>
+              • Close any other program using the port (DobotStudio, etc.).<br/>
+              • On Windows, you may need to install the <a href="https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers" target="_blank" rel="noopener" style="color:#2563eb;text-decoration:underline;">Silicon Labs CP210x USB driver</a>.<br/>
+              • If <code>pip install</code> gives "Access Denied", try <code>pip install --user pydobot pyserial</code> or ask your administrator.
             </div>
           </div>
         </div>
@@ -832,7 +842,8 @@
               <div style="font-weight:700;color:#dc2626;margin-bottom:4px;">🔴 "No Dobot found" / Connection Failed</div>
               <div style="background:#fef2f2;padding:10px;border-radius:6px;">
                 <strong>Cause:</strong> Robot is not connected or driver is missing.<br/>
-                <strong>Fix:</strong> 1) Check USB cable is firmly connected. 2) Power on the robot. 3) Install driver: <code>pip install pydobot pyserial</code>. 4) On Windows install the Silicon Labs CP210x driver. 5) Close any other program using the COM port (DobotStudio, etc.)
+                <strong>Fix:</strong> 1) Check USB cable is firmly connected. 2) Power on the robot. 3) Install driver: <code>pip install pydobot pyserial</code> (or <code>pip install --user pydobot pyserial</code> if blocked). 4) On Windows install the <a href="https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers" target="_blank" rel="noopener" style="color:#2563eb;">Silicon Labs CP210x driver</a>. 5) Close any other program using the COM port (DobotStudio, etc.).<br/>
+                <strong>Manual connect:</strong> Use <code>DobotRobot.list_ports()</code> to see available ports, then <code>DobotRobot(port='COM3')</code>.
               </div>
             </div>
             <div style="margin-bottom:16px;">
@@ -867,7 +878,18 @@
               <div style="font-weight:700;color:#dc2626;margin-bottom:4px;">🔴 "ModuleNotFoundError: No module named 'pydobot'"</div>
               <div style="background:#fef2f2;padding:10px;border-radius:6px;">
                 <strong>Cause:</strong> The pydobot Python package is not installed.<br/>
-                <strong>Fix:</strong> Run <code>pip install pydobot pyserial</code> in your terminal. If pip is restricted, ask your teacher to install it on the computer.
+                <strong>Fix:</strong> Run <code>pip install pydobot pyserial</code> in your terminal.<br/>
+                If pip is restricted by admin ("Access Denied"), try: <code>pip install --user pydobot pyserial</code><br/>
+                If that also fails, ask your teacher or administrator to install it on the computer.
+              </div>
+            </div>
+            <div style="margin-bottom:16px;">
+              <div style="font-weight:700;color:#dc2626;margin-bottom:4px;">🔴 "pip install" gives "Access Denied" or "Permission Error"</div>
+              <div style="background:#fef2f2;padding:10px;border-radius:6px;">
+                <strong>Cause:</strong> Your computer restricts software installation (common on school/lab computers).<br/>
+                <strong>Fix:</strong> Try installing for your user only: <code>pip install --user pydobot pyserial</code><br/>
+                Or use the full Python path: <code>python -m pip install --user pydobot pyserial</code><br/>
+                If both fail, ask your teacher or IT administrator to install the packages.
               </div>
             </div>
             <div style="margin-bottom:16px;">

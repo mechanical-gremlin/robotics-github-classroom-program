@@ -20,6 +20,14 @@ try:
 except ImportError:
     _HAS_PYDOBOT = False
 
+# Try to import pyserial for port listing even when pydobot is missing.
+try:
+    import serial               # pip install pyserial
+    import serial.tools.list_ports
+    _HAS_SERIAL = True
+except ImportError:
+    _HAS_SERIAL = False
+
 try:
     import cv2  # pip install opencv-python  (for AI camera features)
     _HAS_CV2 = True
@@ -95,20 +103,26 @@ class DobotRobot:
 
         if _HAS_PYDOBOT:
             try:
-                from pydobot import Dobot
                 detected_port = port or self._detect_port()
                 if detected_port:
-                    self._device = Dobot(port=detected_port, verbose=False)
-                    self._sim = False
-                    v, a = _SPEED_PRESETS[self._speed]
-                    self._device.speed(velocity=v, acceleration=a)
-                    self._log(f'✅ Connected to Dobot on {detected_port}')
+                    self._connect_to_port(detected_port)
                 else:
-                    self._log('⚠️  No Dobot found — running in simulation mode')
+                    available = self.list_ports()
+                    if available:
+                        port_list = ', '.join(available)
+                        self._log(f'⚠️  No Dobot auto-detected but serial ports found: {port_list}')
+                        self._log('    Try: robot = DobotRobot(port="COM3") with your port')
+                    else:
+                        self._log('⚠️  No Dobot found and no serial ports detected — running in simulation mode')
+                        self._log('    Check that the USB cable is connected and the robot is powered on.')
             except Exception as e:
                 self._log(f'⚠️  Could not connect to Dobot ({e}) — simulation mode')
+                self._log('    Try: robot = DobotRobot(port="COM3") to connect manually')
         else:
-            self._log('ℹ️  pydobot not installed — simulation mode (pip install pydobot)')
+            self._log('ℹ️  pydobot not installed — running in simulation mode')
+            self._log('    Install with: pip install pydobot pyserial')
+            self._log('    If pip is blocked by admin, try: pip install --user pydobot pyserial')
+            self._log('    Or ask your teacher/administrator to install it.')
 
     # ── Internal helpers ───────────────────────────────────────────────
 
@@ -118,17 +132,92 @@ class DobotRobot:
     def _sim_log(self, action: str):
         self._log(f'[SIM] {action}')
 
+    def _connect_to_port(self, port: str):
+        """Attempt to open a connection to the Dobot on the given serial port."""
+        from pydobot import Dobot
+        self._device = Dobot(port=port, verbose=False)
+        self._sim = False
+        v, a = _SPEED_PRESETS[self._speed]
+        self._device.speed(velocity=v, acceleration=a)
+        self._log(f'✅ Connected to Dobot on {port}')
+
+    @staticmethod
+    def list_ports() -> list[str]:
+        """
+        List all available serial ports on this computer.
+
+        Returns:
+            A list of port names (e.g., ['COM3', 'COM5'] on Windows).
+
+        Example:
+            print(DobotRobot.list_ports())
+            robot = DobotRobot(port='COM3')
+        """
+        if not _HAS_SERIAL:
+            print('[DobotRobot] pyserial not installed — cannot list ports')
+            print('             Install with: pip install pyserial')
+            return []
+        try:
+            ports = serial.tools.list_ports.comports()
+            return [p.device for p in ports]
+        except Exception:
+            return []
+
+    def connect(self, port: str):
+        """
+        Manually connect (or reconnect) to a Dobot on the specified serial port.
+
+        Use this when auto-detection did not find the robot, or you want
+        to switch to a different port.
+
+        Args:
+            port: Serial port name (e.g., 'COM3', 'COM5', '/dev/ttyUSB0').
+
+        Example:
+            robot = DobotRobot()              # starts in simulation
+            print(DobotRobot.list_ports())     # see available ports
+            robot.connect('COM3')              # connect manually
+        """
+        if not _HAS_PYDOBOT:
+            self._log('❌ Cannot connect — pydobot is not installed')
+            self._log('   Install with: pip install pydobot pyserial')
+            self._log('   If pip is blocked by admin, try: pip install --user pydobot pyserial')
+            return
+        # Close any existing connection first
+        if self._device:
+            try:
+                self._device.close()
+            except Exception:
+                pass
+            self._device = None
+            self._sim = True
+        try:
+            self._connect_to_port(port)
+        except Exception as e:
+            self._log(f'❌ Failed to connect on {port}: {e}')
+            self._log('   Make sure the USB cable is connected and no other program is using the port.')
+            available = self.list_ports()
+            if available:
+                self._log(f'   Available ports: {", ".join(available)}')
+
     @staticmethod
     def _detect_port() -> str | None:
         """Auto-detect Dobot serial port."""
+        if not _HAS_SERIAL:
+            return None
         try:
-            import serial.tools.list_ports
             ports = serial.tools.list_ports.comports()
             for p in ports:
                 desc = (p.description or '').lower()
-                if 'dobot' in desc or 'silicon labs' in desc or 'cp210' in desc:
+                hwid = (p.hwid or '').lower()
+                # Match Dobot's USB-to-serial chips: Silicon Labs CP210x,
+                # FTDI, CH340/CH341, or a direct "dobot" mention.
+                if any(kw in desc or kw in hwid for kw in (
+                    'dobot', 'silicon labs', 'cp210', 'cp2102',
+                    'ch340', 'ch341', 'ftdi',
+                )):
                     return p.device
-        except ImportError:
+        except Exception:
             pass
         return None
 

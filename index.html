@@ -228,6 +228,10 @@
       <div class="card">
         <div class="card-header">
           <span class="card-title">📚 My Repositories &amp; Assignments</span>
+          <select id="dashboard-org-filter" class="form-control" style="width:auto;max-width:220px;"
+            onchange="App.filterDashboardByOrg(this.value)">
+            <option value="">All Organizations</option>
+          </select>
           <button class="btn btn-outline btn-sm" onclick="App.refreshDashboard()">🔄 Refresh</button>
         </div>
         <div class="card-body" id="assignments-list">
@@ -293,7 +297,9 @@
           <div id="panel-python" class="editor-panel hidden" style="height:100%;display:flex;flex-direction:row;">
             <!-- Python Command Reference Sidebar -->
             <div id="py-command-panel" class="py-command-panel">
-              <div class="py-command-header">📖 Command Reference</div>
+              <div class="py-command-header">📖 Command Reference
+                <span style="font-size:11px;color:#94a3b8;font-weight:400;display:block;">Click to insert at cursor</span>
+              </div>
               <div class="py-command-list">
                 <!-- Dobot commands (hidden when VEX V5 is selected) -->
                 <div class="py-cmd-dobot-only">
@@ -380,7 +386,7 @@
               <div id="py-textarea-container" class="hidden" style="flex:1;">
                 <textarea id="py-textarea"
                   style="width:100%;height:100%;background:#1e1e1e;color:#d4d4d4;font-family:'Fira Code',monospace;font-size:14px;padding:16px;border:none;resize:none;outline:none;"
-                  placeholder="# Write your Python code here&#10;import time&#10;from dobot_wrapper import DobotRobot&#10;&#10;robot = DobotRobot(port='COM3')&#10;&#10;robot.move_home()&#10;"></textarea>
+                  placeholder="# Write your Python code here&#10;import time&#10;from dobot_wrapper import DobotRobot&#10;&#10;robot = DobotRobot(port='COM3')&#10;&#10;# --- Start coding here ---&#10;robot.move_home()&#10;"></textarea>
               </div>
             </div>
           </div>
@@ -710,6 +716,18 @@
             <pre style="background:#1e1e1e;color:#68d391;padding:10px;border-radius:6px;font-size:12px;margin:0;">from dobot_wrapper import DobotRobot
 print(DobotRobot.list_ports())   # list ports
 robot = DobotRobot(port='COM3')  # use your port</pre>
+
+            <div style="margin-top:12px;padding:12px;background:#fef9c3;border-radius:8px;border:1px solid #fde68a;">
+              <div style="font-weight:700;margin-bottom:6px;font-size:13px;">🔍 Advanced Communication Debug Mode</div>
+              <div style="font-size:12px;color:#6b7280;margin-bottom:8px;">Enable verbose logging to diagnose connection issues between the computer and the robot. When enabled, detailed serial communication data is printed to the console.</div>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+                <input type="checkbox" id="debug-mode-toggle"
+                  style="width:16px;height:16px;cursor:pointer;"
+                  onchange="App.toggleDebugMode(this)" />
+                <span>Enable debug mode</span>
+              </label>
+              <div style="margin-top:8px;font-size:12px;color:#6b7280;">When debug mode is on, use <code style="background:#f1f5f9;padding:2px 4px;border-radius:3px;">DobotRobot(port='COM3', debug=True)</code> in your Python code, then call <code style="background:#f1f5f9;padding:2px 4px;border-radius:3px;">robot.print_debug_info()</code> to see full diagnostics.</div>
+            </div>
           </div>
 
           <div style="background:#f0fdf4;border-radius:8px;padding:16px;font-size:13px;">
@@ -855,6 +873,14 @@ robot = DobotRobot(port='COM3')  # connect to your port</pre>
       if (av) av.innerHTML = user.avatar_url ? `<img src="${user.avatar_url}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;">` : user.login[0].toUpperCase();
       if (un) un.textContent = user.login;
       if (rl) rl.textContent = localStorage.getItem('user_role') === 'teacher' ? '👩‍🏫 Teacher' : '🎓 Student';
+
+      // Restore debug mode toggle state
+      const dbg = document.getElementById('debug-mode-toggle');
+      if (dbg) dbg.checked = !!localStorage.getItem('debug_mode');
+
+      // Restore saved port
+      const portInput = document.getElementById('robot-port-input');
+      if (portInput) portInput.value = localStorage.getItem('robot_port') || 'COM3';
     };
 
     // Trigger settings update when settings view opens

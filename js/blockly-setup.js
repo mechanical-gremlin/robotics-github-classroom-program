@@ -359,30 +359,39 @@ const BlocklySetup = (() => {
     Blockly.Blocks['dobot_read_color_sensor'] = {
       init() {
         this.appendDummyInput()
-          .appendField('🎨 Read Color Sensor');
+          .appendField('🎨 Read Color Sensor on GP Port')
+          .appendField(new Blockly.FieldDropdown([
+            ['GP1','1'],['GP2','2'],['GP4','4'],['GP5','5'],
+          ]), 'PORT');
         this.setOutput(true, 'String');
         this.setColour(COLORS.sensor);
-        this.setTooltip('Read the color sensor. Returns the detected color (e.g., "red", "green", "blue").');
+        this.setTooltip('Read the color sensor on the specified GP port. Returns the detected color (e.g., "red", "green", "blue").');
       }
     };
 
     Blockly.Blocks['dobot_read_infrared'] = {
       init() {
         this.appendDummyInput()
-          .appendField('📡 Read Infrared Sensor');
+          .appendField('📡 Read Infrared Sensor on GP Port')
+          .appendField(new Blockly.FieldDropdown([
+            ['GP1','1'],['GP2','2'],['GP4','4'],['GP5','5'],
+          ]), 'PORT');
         this.setOutput(true, 'Number');
         this.setColour(COLORS.sensor);
-        this.setTooltip('Read the infrared sensor distance value in millimeters.');
+        this.setTooltip('Read the infrared sensor distance value (mm) on the specified GP port.');
       }
     };
 
     Blockly.Blocks['dobot_infrared_detected'] = {
       init() {
         this.appendDummyInput()
-          .appendField('📡 Infrared Object Detected?');
+          .appendField('📡 Infrared Object Detected? on GP Port')
+          .appendField(new Blockly.FieldDropdown([
+            ['GP1','1'],['GP2','2'],['GP4','4'],['GP5','5'],
+          ]), 'PORT');
         this.setOutput(true, 'Boolean');
         this.setColour(COLORS.sensor);
-        this.setTooltip('Returns true if the infrared sensor detects an object nearby.');
+        this.setTooltip('Returns true if the infrared sensor on the specified GP port detects an object nearby.');
       }
     };
 
@@ -392,7 +401,11 @@ const BlocklySetup = (() => {
       init() {
         this.appendValueInput('SPEED')
           .setCheck('Number')
-          .appendField('🏭 Set Conveyor Speed');
+          .appendField('🏭 Set Conveyor')
+          .appendField(new Blockly.FieldDropdown([
+            ['STEPPER1','1'],['STEPPER2','2'],
+          ]), 'PORT')
+          .appendField('Speed');
         this.appendDummyInput()
           .appendField('mm/s')
           .appendField(new Blockly.FieldDropdown([
@@ -431,7 +444,10 @@ const BlocklySetup = (() => {
       init() {
         this.appendValueInput('DISTANCE')
           .setCheck('Number')
-          .appendField('🏭 Move Conveyor');
+          .appendField('🏭 Move Conveyor')
+          .appendField(new Blockly.FieldDropdown([
+            ['STEPPER1','1'],['STEPPER2','2'],
+          ]), 'PORT');
         this.appendDummyInput()
           .appendField('mm')
           .appendField(new Blockly.FieldDropdown([
@@ -883,6 +899,7 @@ const BlocklySetup = (() => {
     };
   };  // end defineBlocks
 
+
   /* ---- Python code generators for each block ---- */
   const defineGenerators = () => {
     if (typeof Blockly.Python === 'undefined') return;
@@ -934,9 +951,18 @@ const BlocklySetup = (() => {
     P['dobot_ai_color_detect']= () => ['robot.ai_detect_color()', P.ORDER_FUNCTION_CALL];
     P['dobot_ai_face_detect'] = () => ['robot.ai_detect_face()', P.ORDER_FUNCTION_CALL];
     P['dobot_ai_grab_detected'] = () => 'robot.ai_grab_detected()\n';
-    P['dobot_read_color_sensor'] = () => ['robot.read_color_sensor()', P.ORDER_FUNCTION_CALL];
-    P['dobot_read_infrared']     = () => ['robot.read_infrared()', P.ORDER_FUNCTION_CALL];
-    P['dobot_infrared_detected'] = () => ['robot.infrared_detected()', P.ORDER_FUNCTION_CALL];
+    P['dobot_read_color_sensor'] = (b) => {
+      const port = b.getFieldValue('PORT') || 1;
+      return [`robot.read_color_sensor()  # GP${port} (init first with robot.init_color_sensor(${port}))`, P.ORDER_FUNCTION_CALL];
+    };
+    P['dobot_read_infrared']     = (b) => {
+      const port = b.getFieldValue('PORT') || 1;
+      return [`robot.read_infrared()  # GP${port} (init first with robot.init_infrared(${port}))`, P.ORDER_FUNCTION_CALL];
+    };
+    P['dobot_infrared_detected'] = (b) => {
+      const port = b.getFieldValue('PORT') || 1;
+      return [`robot.infrared_detected()  # GP${port} (init first with robot.init_infrared(${port}))`, P.ORDER_FUNCTION_CALL];
+    };
     P['dobot_conveyor_speed']    = (b) => {
       const speed = P.valueToCode(b, 'SPEED', P.ORDER_NONE) || 50;
       const dir = b.getFieldValue('DIRECTION');
@@ -1402,8 +1428,12 @@ const BlocklySetup = (() => {
       addStarterBlocks(_currentRobotType);
     }
 
+    _currentRobotType = robotType || 'magician';
+
     return workspace;
   };
+
+  let _currentRobotType = 'magician';
 
   /** Update the toolbox when robot type changes */
   const updateToolbox = (robotType) => {

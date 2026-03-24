@@ -1468,11 +1468,11 @@ button, input, select, textarea {
   margin: 20px 0;
 }
 
-/* ---- Repository Group (organized by org/owner) ---- */
+/* ---- Repo Group (folder-style) ---- */
 .repo-group {
-  margin-bottom: 8px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+  margin-bottom: 8px;
   overflow: hidden;
 }
 .repo-group-header {
@@ -1482,24 +1482,26 @@ button, input, select, textarea {
   padding: 10px 16px;
   background: var(--color-surface-2);
   cursor: pointer;
-  font-weight: 700;
-  font-size: 13px;
-  list-style: none;
   user-select: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: background 0.15s;
 }
-.repo-group-header::-webkit-details-marker { display: none; }
-.repo-group-header::before {
-  content: '▶';
-  font-size: 10px;
-  transition: transform 0.15s;
+.repo-group-header:hover { background: var(--color-surface-3, #e2e8f0); }
+.repo-group-icon { font-size: 16px; }
+.repo-group-name { color: var(--color-text); flex: 1; }
+.repo-group-chevron { font-size: 12px; color: var(--color-text-secondary); transition: transform 0.2s; }
+.repo-group-items.collapsed { display: none; }
+.repo-group.collapsed .repo-group-chevron { transform: rotate(-90deg); }
+.repo-group-items { border-top: 1px solid var(--color-border); }
+.repo-group-items .repo-item {
+  border-radius: 0;
+  border-bottom: 1px solid var(--color-border);
+  padding-left: 32px;
 }
-details[open] .repo-group-header::before { transform: rotate(90deg); }
-.repo-group .assignment-list { padding: 8px; background: var(--color-surface); }
+.repo-group-items .repo-item:last-child { border-bottom: none; }
 
-/* ---- Python command tooltip via native title (enhanced with CSS) ---- */
-.py-cmd-btn {
-  position: relative;
-}
+/* ---- py-cmd-btn tooltip ---- */
 .py-cmd-btn[title]:hover::after {
   content: attr(title);
   position: absolute;
@@ -1507,14 +1509,27 @@ details[open] .repo-group-header::before { transform: rotate(90deg); }
   top: 0;
   margin-left: 8px;
   background: #1e293b;
-  color: #f1f5f9;
-  font-size: 11px;
-  padding: 6px 10px;
+  color: #e2e8f0;
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 8px 12px;
   border-radius: 6px;
+  width: 240px;
   white-space: normal;
-  width: 220px;
-  z-index: 100;
+  z-index: 9999;
   pointer-events: none;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  line-height: 1.4;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 400;
+}
+.py-cmd-btn {
+  position: relative;
+}
+.py-command-list {
+  overflow-x: visible;
+}
+#py-command-panel {
+  overflow: visible;
+  position: relative;
+  z-index: 10;
 }

@@ -798,7 +798,12 @@ robot = DobotRobot(port='COM3')  # use your port</pre>
         const text = btn.dataset.insert;
         if (window.monacoEditor) {
           const editor = window.monacoEditor;
-          const selection = editor.getSelection();
+          const selection = editor.getSelection() || new monaco.Range(
+            editor.getModel().getLineCount(),
+            editor.getModel().getLineMaxColumn(editor.getModel().getLineCount()),
+            editor.getModel().getLineCount(),
+            editor.getModel().getLineMaxColumn(editor.getModel().getLineCount())
+          );
           editor.executeEdits('', [{
             range: selection,
             text: text + '\n',

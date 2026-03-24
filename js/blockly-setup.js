@@ -1433,8 +1433,6 @@ const BlocklySetup = (() => {
     return workspace;
   };
 
-  let _currentRobotType = 'magician';
-
   /** Update the toolbox when robot type changes */
   const updateToolbox = (robotType) => {
     _currentRobotType = robotType || 'magician';

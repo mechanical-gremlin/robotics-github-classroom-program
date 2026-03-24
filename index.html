@@ -707,12 +707,7 @@ robot = DobotRobot(port='COM3')  # use your port</pre>
               <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
                 <input type="checkbox" id="debug-mode-toggle"
                   style="width:16px;height:16px;cursor:pointer;"
-                  onchange="(function(cb){
-                    localStorage.setItem('debug_mode', cb.checked ? '1' : '');
-                    toast(cb.checked ? 'Debug Mode ON' : 'Debug Mode OFF',
-                          cb.checked ? 'Verbose communication logging enabled' : 'Standard logging restored',
-                          cb.checked ? 'warning' : 'info');
-                  })(this)" />
+                  onchange="App.toggleDebugMode(this)" />
                 <span>Enable debug mode</span>
               </label>
               <div style="margin-top:8px;font-size:12px;color:#6b7280;">When debug mode is on, use <code style="background:#f1f5f9;padding:2px 4px;border-radius:3px;">DobotRobot(port='COM3', debug=True)</code> in your Python code, then call <code style="background:#f1f5f9;padding:2px 4px;border-radius:3px;">robot.print_debug_info()</code> to see full diagnostics.</div>

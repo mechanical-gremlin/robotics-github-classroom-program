@@ -51,6 +51,9 @@ _IR_DETECTION_THRESHOLD_MM = 100
 # Default conveyor belt speed (mm/s)
 _DEFAULT_CONVEYOR_SPEED = 50
 
+# Debounce threshold for lock/unlock alarm detection (consecutive reads)
+_ALARM_DEBOUNCE_THRESHOLD = 2
+
 # Dobot Magician workspace bounds (mm) — prevents motor damage
 _WORKSPACE_BOUNDS = {
     'x_min': -320, 'x_max': 320,
@@ -198,7 +201,7 @@ class DobotRobot:
                     alarm_active = alarms and any(alarms)
                     if alarm_active:
                         consecutive_alarm += 1
-                        if consecutive_alarm >= 2:  # debounce: require 2 consecutive reads
+                        if consecutive_alarm >= _ALARM_DEBOUNCE_THRESHOLD:
                             if self._program_running and not self._lock_triggered:
                                 self._lock_triggered = True
                                 self._log('🔐 Lock/Unlock button detected — emergency stopping program')
@@ -215,8 +218,7 @@ class DobotRobot:
                     pass
                 time.sleep(0.5)
 
-        t = threading.Thread(target=_monitor, daemon=True)
-        t.name = 'DobotLockMonitor'
+        t = threading.Thread(target=_monitor, daemon=True, name='DobotLockMonitor')
         t.start()
         self._debug_log('Lock/unlock monitor thread started')
 
@@ -907,7 +909,11 @@ class DobotRobot:
         Args:
             stepper_port: Stepper port number (1 or 2).
         """
-        self._conveyor_port = int(stepper_port)
+        stepper_port = int(stepper_port)
+        if stepper_port not in (1, 2):
+            self._log(f'[CONVEYOR] Invalid stepper_port {stepper_port} — must be 1 or 2. Defaulting to 1.')
+            stepper_port = 1
+        self._conveyor_port = stepper_port
         self._sim_log(f'init_conveyor(STEPPER{stepper_port})')
         self._log(f'[CONVEYOR] Conveyor belt initialized on STEPPER{stepper_port}')
 

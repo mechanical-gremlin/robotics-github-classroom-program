@@ -644,6 +644,7 @@ const BlocklySetup = (() => {
           .appendField(new Blockly.FieldDropdown([
             ['PORT1','1'],['PORT2','2'],['PORT3','3'],['PORT4','4'],
             ['PORT5','5'],['PORT6','6'],['PORT7','7'],['PORT8','8'],
+            ['PORT9','9'],['PORT10','10'],['PORT11','11'],['PORT12','12'],
           ]), 'PORT')
           .appendField(new Blockly.FieldDropdown([
             ['Forward', 'FORWARD'],
@@ -1025,11 +1026,12 @@ const BlocklySetup = (() => {
     };
     P['vex_controller_axis'] = (b) => {
       const axis = b.getFieldValue('AXIS');
-      return [`controller_1.axis${axis.slice(-1)}.position()`, P.ORDER_FUNCTION_CALL];
+      const axisNum = axis.replace('AXIS', '');
+      return [`controller_1.axis${axisNum}.position()`, P.ORDER_FUNCTION_CALL];
     };
     P['vex_controller_button'] = (b) => {
       const btn = b.getFieldValue('BUTTON');
-      return [`controller_1.buttonL1.pressing()`.replace('buttonL1', `button${btn}`), P.ORDER_FUNCTION_CALL];
+      return [`controller_1.button${btn}.pressing()`, P.ORDER_FUNCTION_CALL];
     };
     P['vex_distance_sensor'] = (b) => {
       const port = b.getFieldValue('PORT');
@@ -1052,10 +1054,10 @@ const BlocklySetup = (() => {
       return `Motor(Ports.PORT${port}).reset_position()\n`;
     };
     P['vex_pneumatic'] = (b) => {
-      const port   = b.getFieldValue('PORT');
-      const action = b.getFieldValue('ACTION');
-      const method = action === 'EXTEND' ? 'open' : 'close';
-      return `Pneumatics(brain.three_wire_port.${port.toLowerCase()}).${method}()\n`;
+      const port      = b.getFieldValue('PORT');
+      const action    = b.getFieldValue('ACTION');
+      const operation = action === 'EXTEND' ? 'open' : 'close';
+      return `Pneumatics(brain.three_wire_port.${port.toLowerCase()}).${operation}()\n`;
     };
   };
 

@@ -686,16 +686,21 @@ const App = (() => {
         </div>
       `).join('');
 
-      const groupId = `repo-group-${owner.replace(/[^a-z0-9]/gi, '-')}`;
+      const groupId   = `repo-group-${owner.replace(/[^a-z0-9]/gi, '-')}-${ownerRepos.length}`;
       return `
-        <div class="repo-group">
-          <div class="repo-group-header" onclick="document.getElementById('${groupId}').classList.toggle('collapsed')">
+        <div class="repo-group" id="${groupId}-container">
+          <div class="repo-group-header" onclick="(function(el){
+            var grp = el.closest('.repo-group');
+            var items = grp.querySelector('.repo-group-items');
+            items.classList.toggle('collapsed');
+            grp.classList.toggle('collapsed');
+          })(this)">
             <span class="repo-group-icon">📁</span>
             <span class="repo-group-name">${owner}</span>
             <span class="badge badge-blue" style="margin-left:auto;">${ownerRepos.length}</span>
             <span class="repo-group-chevron">▾</span>
           </div>
-          <div id="${groupId}" class="repo-group-items">
+          <div class="repo-group-items">
             ${reposHtml}
           </div>
         </div>
@@ -793,6 +798,15 @@ const App = (() => {
         ${state.selectedRobot === r.id ? '<span class="badge badge-blue" style="margin-top:8px;">✓ Selected</span>' : ''}
       </div>
     `).join('');
+  };
+
+  const toggleDebugMode = (checkbox) => {
+    localStorage.setItem('debug_mode', checkbox.checked ? '1' : '');
+    toast(
+      checkbox.checked ? 'Debug Mode ON' : 'Debug Mode OFF',
+      checkbox.checked ? 'Verbose communication logging enabled' : 'Standard logging restored',
+      checkbox.checked ? 'warning' : 'info'
+    );
   };
 
   const selectRobot = (id) => {
@@ -988,6 +1002,7 @@ const App = (() => {
     openRepo,
     openFile,
     selectRobot,
+    toggleDebugMode,
     saveCurrentFile,
     refreshDashboard,
     filterDashboardByOrg,

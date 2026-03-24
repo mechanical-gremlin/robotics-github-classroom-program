@@ -1491,7 +1491,6 @@ button, input, select, textarea {
 .repo-group-icon { font-size: 16px; }
 .repo-group-name { color: var(--color-text); flex: 1; }
 .repo-group-chevron { font-size: 12px; color: var(--color-text-secondary); transition: transform 0.2s; }
-.repo-group-items.collapsed ~ * .repo-group-chevron,
 .repo-group-items.collapsed { display: none; }
 .repo-group.collapsed .repo-group-chevron { transform: rotate(-90deg); }
 .repo-group-items { border-top: 1px solid var(--color-border); }

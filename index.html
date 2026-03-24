@@ -228,6 +228,10 @@
       <div class="card">
         <div class="card-header">
           <span class="card-title">📚 My Repositories &amp; Assignments</span>
+          <select id="dashboard-org-filter" class="form-control" style="width:auto;max-width:220px;"
+            onchange="App.filterDashboardByOrg(this.value)">
+            <option value="">All Organizations</option>
+          </select>
           <button class="btn btn-outline btn-sm" onclick="App.refreshDashboard()">🔄 Refresh</button>
         </div>
         <div class="card-body" id="assignments-list">
@@ -293,54 +297,73 @@
           <div id="panel-python" class="editor-panel hidden" style="height:100%;display:flex;flex-direction:row;">
             <!-- Python Command Reference Sidebar -->
             <div id="py-command-panel" class="py-command-panel">
-              <div class="py-command-header">📖 Command Reference</div>
+              <div class="py-command-header">📖 Command Reference
+                <span style="font-size:11px;color:#94a3b8;font-weight:400;display:block;">Click to insert at cursor</span>
+              </div>
               <div class="py-command-list">
                 <div class="py-cmd-section">Movement</div>
-                <button class="py-cmd-btn" data-insert="robot.move_home()">robot.move_home()</button>
-                <button class="py-cmd-btn" data-insert="robot.move_to(x, y, z)">robot.move_to(x, y, z)</button>
-                <button class="py-cmd-btn" data-insert="robot.move_forward(10)">robot.move_forward(mm)</button>
-                <button class="py-cmd-btn" data-insert="robot.move_backward(10)">robot.move_backward(mm)</button>
-                <button class="py-cmd-btn" data-insert="robot.move_left(10)">robot.move_left(mm)</button>
-                <button class="py-cmd-btn" data-insert="robot.move_right(10)">robot.move_right(mm)</button>
-                <button class="py-cmd-btn" data-insert="robot.move_up(10)">robot.move_up(mm)</button>
-                <button class="py-cmd-btn" data-insert="robot.move_down(10)">robot.move_down(mm)</button>
-                <button class="py-cmd-btn" data-insert="robot.move_delta(dx, dy, dz)">robot.move_delta(dx, dy, dz)</button>
-                <button class="py-cmd-btn" data-insert="robot.move_delta_r(45)">robot.move_delta_r(deg)</button>
-                <button class="py-cmd-btn" data-insert="robot.rotate_left(45)">robot.rotate_left(deg)</button>
-                <button class="py-cmd-btn" data-insert="robot.rotate_right(45)">robot.rotate_right(deg)</button>
-                <button class="py-cmd-btn" data-insert="robot.set_joint_angles(j1, j2, j3, j4)">robot.set_joint_angles(…)</button>
-                <button class="py-cmd-btn" data-insert="robot.get_position()">robot.get_position()</button>
-                <button class="py-cmd-btn" data-insert="robot.get_joint_angles()">robot.get_joint_angles()</button>
+                <button class="py-cmd-btn" data-insert="robot.move_home()" title="Move the robot arm back to its starting (home) position.">robot.move_home()</button>
+                <button class="py-cmd-btn" data-insert="robot.move_to(x, y, z)" title="Move the robot arm to exact X, Y, Z coordinates (mm).">robot.move_to(x, y, z)</button>
+                <button class="py-cmd-btn" data-insert="robot.move_forward(10)" title="Move the arm forward by the given number of millimeters.">robot.move_forward(mm)</button>
+                <button class="py-cmd-btn" data-insert="robot.move_backward(10)" title="Move the arm backward by the given number of millimeters.">robot.move_backward(mm)</button>
+                <button class="py-cmd-btn" data-insert="robot.move_left(10)" title="Move the arm to the left by the given number of millimeters.">robot.move_left(mm)</button>
+                <button class="py-cmd-btn" data-insert="robot.move_right(10)" title="Move the arm to the right by the given number of millimeters.">robot.move_right(mm)</button>
+                <button class="py-cmd-btn" data-insert="robot.move_up(10)" title="Raise the arm by the given number of millimeters.">robot.move_up(mm)</button>
+                <button class="py-cmd-btn" data-insert="robot.move_down(10)" title="Lower the arm by the given number of millimeters.">robot.move_down(mm)</button>
+                <button class="py-cmd-btn" data-insert="robot.move_delta(dx, dy, dz)" title="Move relative to the current position by dx, dy, dz millimeters.">robot.move_delta(dx, dy, dz)</button>
+                <button class="py-cmd-btn" data-insert="robot.move_delta_r(45)" title="Rotate the end effector relative to its current angle by the given degrees.">robot.move_delta_r(deg)</button>
+                <button class="py-cmd-btn" data-insert="robot.rotate_left(45)" title="Rotate the robot base to the left by the given number of degrees.">robot.rotate_left(deg)</button>
+                <button class="py-cmd-btn" data-insert="robot.rotate_right(45)" title="Rotate the robot base to the right by the given number of degrees.">robot.rotate_right(deg)</button>
+                <button class="py-cmd-btn" data-insert="robot.set_joint_angles(j1, j2, j3, j4)" title="Move by setting all four joint angles directly in degrees.">robot.set_joint_angles(…)</button>
+                <button class="py-cmd-btn" data-insert="robot.get_position()" title="Returns the current robot position as a tuple (x, y, z, r).">robot.get_position()</button>
+                <button class="py-cmd-btn" data-insert="robot.get_joint_angles()" title="Returns the current joint angles as a tuple (J1, J2, J3, J4).">robot.get_joint_angles()</button>
                 <div class="py-cmd-section">Gripper</div>
-                <button class="py-cmd-btn" data-insert="robot.grab()">robot.grab()</button>
-                <button class="py-cmd-btn" data-insert="robot.release()">robot.release()</button>
-                <button class="py-cmd-btn" data-insert="robot.claw_open()">robot.claw_open()</button>
-                <button class="py-cmd-btn" data-insert="robot.claw_close()">robot.claw_close()</button>
+                <button class="py-cmd-btn" data-insert="robot.grab()" title="Turn on the suction cup to pick up an object.">robot.grab()</button>
+                <button class="py-cmd-btn" data-insert="robot.release()" title="Turn off the suction cup to release the held object.">robot.release()</button>
+                <button class="py-cmd-btn" data-insert="robot.claw_open()" title="Open the claw gripper.">robot.claw_open()</button>
+                <button class="py-cmd-btn" data-insert="robot.claw_close()" title="Close the claw gripper to hold an object.">robot.claw_close()</button>
                 <div class="py-cmd-section">Speed &amp; I/O</div>
-                <button class="py-cmd-btn" data-insert="robot.set_speed('medium')">robot.set_speed(speed)</button>
-                <button class="py-cmd-btn" data-insert="time.sleep(1)">time.sleep(seconds)</button>
-                <button class="py-cmd-btn" data-insert="robot.beep()">robot.beep()</button>
-                <button class="py-cmd-btn" data-insert="robot.light('on')">robot.light(state)</button>
-                <div class="py-cmd-section">Sensors</div>
-                <button class="py-cmd-btn" data-insert="robot.init_color_sensor(1)">robot.init_color_sensor(port)</button>
-                <button class="py-cmd-btn" data-insert="robot.init_infrared(1)">robot.init_infrared(port)</button>
-                <button class="py-cmd-btn" data-insert="robot.read_color_sensor()">robot.read_color_sensor()</button>
-                <button class="py-cmd-btn" data-insert="robot.read_infrared()">robot.read_infrared()</button>
-                <button class="py-cmd-btn" data-insert="robot.infrared_detected()">robot.infrared_detected()</button>
-                <div class="py-cmd-section">Conveyor Belt</div>
-                <button class="py-cmd-btn" data-insert="robot.init_conveyor(1)">robot.init_conveyor(port)</button>
-                <button class="py-cmd-btn" data-insert="robot.conveyor_speed(50, 'forward')">robot.conveyor_speed(…)</button>
-                <button class="py-cmd-btn" data-insert="robot.conveyor_stop()">robot.conveyor_stop()</button>
-                <button class="py-cmd-btn" data-insert="robot.conveyor_move(100, 'forward')">robot.conveyor_move(…)</button>
-                <div class="py-cmd-section">AI Features</div>
-                <button class="py-cmd-btn" data-insert="robot.ai_detect_object()">robot.ai_detect_object()</button>
-                <button class="py-cmd-btn" data-insert="robot.ai_detect_color()">robot.ai_detect_color()</button>
-                <button class="py-cmd-btn" data-insert="robot.ai_detect_face()">robot.ai_detect_face()</button>
-                <button class="py-cmd-btn" data-insert="robot.ai_grab_detected()">robot.ai_grab_detected()</button>
-                <button class="py-cmd-btn" data-insert="robot.ai_follow_line()">robot.ai_follow_line()</button>
-                <div class="py-cmd-section">Safety</div>
-                <button class="py-cmd-btn" data-insert="robot.emergency_stop()">robot.emergency_stop()</button>
-                <button class="py-cmd-btn" data-insert="robot.reset_emergency()">robot.reset_emergency()</button>
+                <button class="py-cmd-btn" data-insert="robot.set_speed('medium')" title="Set the robot movement speed. Options: 'slow', 'medium', 'fast'.">robot.set_speed(speed)</button>
+                <button class="py-cmd-btn" data-insert="time.sleep(1)" title="Pause the program for the given number of seconds.">time.sleep(seconds)</button>
+                <button class="py-cmd-btn" data-insert="robot.beep()" title="Make the robot emit a beep sound.">robot.beep()</button>
+                <button class="py-cmd-btn" data-insert="robot.light('on')" title="Turn the robot indicator light on or off. Use 'on' or 'off'.">robot.light(state)</button>
+                <div class="py-cmd-section">Sensors (Dobot)</div>
+                <button class="py-cmd-btn" data-insert="robot.init_color_sensor(1)" title="Initialize the color sensor on the specified GP port (1, 2, 4, or 5). Must be called before reading.">robot.init_color_sensor(port)</button>
+                <button class="py-cmd-btn" data-insert="robot.init_infrared(1)" title="Initialize the infrared sensor on the specified GP port (1, 2, 4, or 5). Must be called before reading.">robot.init_infrared(port)</button>
+                <button class="py-cmd-btn" data-insert="robot.read_color_sensor()" title="Read the color sensor. Returns the detected color name (e.g., 'red', 'green', 'blue'). Initialize first with init_color_sensor().">robot.read_color_sensor()</button>
+                <button class="py-cmd-btn" data-insert="robot.read_infrared()" title="Read the infrared sensor distance in mm. Initialize first with init_infrared().">robot.read_infrared()</button>
+                <button class="py-cmd-btn" data-insert="robot.infrared_detected()" title="Returns True if the infrared sensor detects a nearby object. Initialize first with init_infrared().">robot.infrared_detected()</button>
+                <div class="py-cmd-section">Conveyor Belt (Dobot)</div>
+                <button class="py-cmd-btn" data-insert="robot.init_conveyor(1)" title="Initialize the conveyor belt on the specified Stepper port (1 or 2). Call before other conveyor commands.">robot.init_conveyor(port)</button>
+                <button class="py-cmd-btn" data-insert="robot.conveyor_speed(50, 'forward')" title="Set the conveyor belt speed (mm/s) and direction ('forward' or 'backward'). Uses the port set by init_conveyor().">robot.conveyor_speed(…)</button>
+                <button class="py-cmd-btn" data-insert="robot.conveyor_stop()" title="Stop the conveyor belt on the initialized Stepper port.">robot.conveyor_stop()</button>
+                <button class="py-cmd-btn" data-insert="robot.conveyor_move(100, 'forward')" title="Move the conveyor belt a specific distance (mm) in the given direction.">robot.conveyor_move(…)</button>
+                <div class="py-cmd-section">AI Features (Dobot AI)</div>
+                <button class="py-cmd-btn" data-insert="robot.ai_detect_object()" title="Use the AI camera to detect an object. Returns the object name or 'none'.">robot.ai_detect_object()</button>
+                <button class="py-cmd-btn" data-insert="robot.ai_detect_color()" title="Detect the dominant color in the camera view. Returns 'red', 'blue', 'green', etc.">robot.ai_detect_color()</button>
+                <button class="py-cmd-btn" data-insert="robot.ai_detect_face()" title="Returns True if the AI camera detects a human face.">robot.ai_detect_face()</button>
+                <button class="py-cmd-btn" data-insert="robot.ai_grab_detected()" title="Automatically move to and grab the object detected by the AI camera.">robot.ai_grab_detected()</button>
+                <button class="py-cmd-btn" data-insert="robot.ai_follow_line()" title="Activate line-following mode using the AI camera (Dobot AI Starter).">robot.ai_follow_line()</button>
+                <div class="py-cmd-section">Safety &amp; Debug</div>
+                <button class="py-cmd-btn" data-insert="robot.emergency_stop()" title="Immediately stop all robot movement. Call reset_emergency() to resume.">robot.emergency_stop()</button>
+                <button class="py-cmd-btn" data-insert="robot.reset_emergency()" title="Clear the emergency stop flag so the robot can move again.">robot.reset_emergency()</button>
+                <button class="py-cmd-btn" data-insert="robot.begin_program()" title="Mark the start of a program. Enables lock/unlock safety monitoring.">robot.begin_program()</button>
+                <button class="py-cmd-btn" data-insert="robot.end_program()" title="Mark the end of a program. Disables lock/unlock safety monitoring.">robot.end_program()</button>
+                <button class="py-cmd-btn" data-insert="robot.print_debug_info()" title="Print advanced connection diagnostics (ports, firmware, errors). Use when debugging connection issues.">robot.print_debug_info()</button>
+                <div class="py-cmd-section">VEX V5</div>
+                <button class="py-cmd-btn" data-insert="drivetrain.drive_for(FORWARD, 200, MM)" title="Drive the VEX V5 drivetrain forward by 200 mm. Change FORWARD to REVERSE to go backwards.">drivetrain.drive_for(…)</button>
+                <button class="py-cmd-btn" data-insert="drivetrain.turn_for(RIGHT, 90, DEGREES)" title="Turn the VEX V5 drivetrain right by 90 degrees. Change RIGHT to LEFT for left turns.">drivetrain.turn_for(…)</button>
+                <button class="py-cmd-btn" data-insert="drivetrain.stop()" title="Stop the VEX V5 drivetrain motors.">drivetrain.stop()</button>
+                <button class="py-cmd-btn" data-insert="motor1 = Motor(Ports.PORT1)" title="Create a VEX V5 motor object on PORT1. Change the port number to match your wiring.">Motor(Ports.PORT…)</button>
+                <button class="py-cmd-btn" data-insert="motor1.spin(FORWARD, 50, PERCENT)" title="Spin a VEX V5 motor forward at 50% velocity. Change FORWARD/REVERSE and adjust speed.">motor.spin(dir, vel, PERCENT)</button>
+                <button class="py-cmd-btn" data-insert="motor1.stop()" title="Stop a VEX V5 motor.">motor.stop()</button>
+                <button class="py-cmd-btn" data-insert="motor1.spin_for(FORWARD, 90, DEGREES)" title="Spin a motor for a specific number of degrees or rotations.">motor.spin_for(…)</button>
+                <button class="py-cmd-btn" data-insert="controller_1.axis3.position()" title="Read the left joystick Y-axis value (-100 to 100) from the VEX controller.">controller_1.axis3.position()</button>
+                <button class="py-cmd-btn" data-insert="controller_1.buttonA.pressing()" title="Returns True if the A button on the VEX controller is currently being pressed.">controller_1.buttonA.pressing()</button>
+                <button class="py-cmd-btn" data-insert="Distance(Ports.PORT3).object_distance(MM)" title="Read the distance sensor on the specified port. Returns distance in millimeters.">Distance(Ports.PORT…).object_distance(MM)</button>
+                <button class="py-cmd-btn" data-insert="ColorSensor(Ports.PORT4).hue()" title="Read the hue (color angle, 0–360) from the VEX V5 optical sensor on the specified port.">ColorSensor(Ports.PORT…).hue()</button>
+                <button class="py-cmd-btn" data-insert="brain.screen.print('Hello')" title="Print a message on the VEX V5 Brain's built-in screen.">brain.screen.print(text)</button>
+                <button class="py-cmd-btn" data-insert="wait(1000, MSEC)" title="Pause the VEX V5 program for the given number of milliseconds.">wait(ms, MSEC)</button>
               </div>
             </div>
             <!-- Editor Area -->
@@ -351,7 +374,7 @@
               <div id="py-textarea-container" class="hidden" style="flex:1;">
                 <textarea id="py-textarea"
                   style="width:100%;height:100%;background:#1e1e1e;color:#d4d4d4;font-family:'Fira Code',monospace;font-size:14px;padding:16px;border:none;resize:none;outline:none;"
-                  placeholder="# Write your Python code here&#10;import time&#10;from dobot_wrapper import DobotRobot&#10;&#10;robot = DobotRobot(port='COM3')&#10;&#10;robot.move_home()&#10;"></textarea>
+                  placeholder="# Write your Python code here&#10;import time&#10;from dobot_wrapper import DobotRobot&#10;&#10;robot = DobotRobot(port='COM3')&#10;&#10;# --- Start coding here ---&#10;robot.move_home()&#10;"></textarea>
               </div>
             </div>
           </div>
@@ -677,6 +700,18 @@
             <pre style="background:#1e1e1e;color:#68d391;padding:10px;border-radius:6px;font-size:12px;margin:0;">from dobot_wrapper import DobotRobot
 print(DobotRobot.list_ports())   # list ports
 robot = DobotRobot(port='COM3')  # use your port</pre>
+
+            <div style="margin-top:12px;padding:12px;background:#fef9c3;border-radius:8px;border:1px solid #fde68a;">
+              <div style="font-weight:700;margin-bottom:6px;font-size:13px;">🔍 Advanced Communication Debug Mode</div>
+              <div style="font-size:12px;color:#6b7280;margin-bottom:8px;">Enable verbose logging to diagnose connection issues between the computer and the robot. When enabled, detailed serial communication data is printed to the console.</div>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+                <input type="checkbox" id="debug-mode-toggle"
+                  style="width:16px;height:16px;cursor:pointer;"
+                  onchange="App.toggleDebugMode(this)" />
+                <span>Enable debug mode</span>
+              </label>
+              <div style="margin-top:8px;font-size:12px;color:#6b7280;">When debug mode is on, use <code style="background:#f1f5f9;padding:2px 4px;border-radius:3px;">DobotRobot(port='COM3', debug=True)</code> in your Python code, then call <code style="background:#f1f5f9;padding:2px 4px;border-radius:3px;">robot.print_debug_info()</code> to see full diagnostics.</div>
+            </div>
           </div>
 
           <div style="background:#f0fdf4;border-radius:8px;padding:16px;font-size:13px;">
@@ -822,6 +857,14 @@ robot = DobotRobot(port='COM3')  # connect to your port</pre>
       if (av) av.innerHTML = user.avatar_url ? `<img src="${user.avatar_url}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;">` : user.login[0].toUpperCase();
       if (un) un.textContent = user.login;
       if (rl) rl.textContent = localStorage.getItem('user_role') === 'teacher' ? '👩‍🏫 Teacher' : '🎓 Student';
+
+      // Restore debug mode toggle state
+      const dbg = document.getElementById('debug-mode-toggle');
+      if (dbg) dbg.checked = !!localStorage.getItem('debug_mode');
+
+      // Restore saved port
+      const portInput = document.getElementById('robot-port-input');
+      if (portInput) portInput.value = localStorage.getItem('robot_port') || 'COM3';
     };
 
     // Trigger settings update when settings view opens

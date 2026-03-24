@@ -1467,3 +1467,69 @@ button, input, select, textarea {
   background: var(--color-border);
   margin: 20px 0;
 }
+
+/* ---- Repo Group (folder-style) ---- */
+.repo-group {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.repo-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--color-surface-2);
+  cursor: pointer;
+  user-select: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: background 0.15s;
+}
+.repo-group-header:hover { background: var(--color-surface-3, #e2e8f0); }
+.repo-group-icon { font-size: 16px; }
+.repo-group-name { color: var(--color-text); flex: 1; }
+.repo-group-chevron { font-size: 12px; color: var(--color-text-secondary); transition: transform 0.2s; }
+.repo-group-items.collapsed { display: none; }
+.repo-group.collapsed .repo-group-chevron { transform: rotate(-90deg); }
+.repo-group-items { border-top: 1px solid var(--color-border); }
+.repo-group-items .repo-item {
+  border-radius: 0;
+  border-bottom: 1px solid var(--color-border);
+  padding-left: 32px;
+}
+.repo-group-items .repo-item:last-child { border-bottom: none; }
+
+/* ---- py-cmd-btn tooltip ---- */
+.py-cmd-btn[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  left: 100%;
+  top: 0;
+  margin-left: 8px;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 8px 12px;
+  border-radius: 6px;
+  width: 240px;
+  white-space: normal;
+  z-index: 9999;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 400;
+}
+.py-cmd-btn {
+  position: relative;
+}
+.py-command-list {
+  overflow-x: visible;
+}
+#py-command-panel {
+  overflow: visible;
+  position: relative;
+  z-index: 10;
+}

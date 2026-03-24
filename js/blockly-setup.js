@@ -359,30 +359,39 @@ const BlocklySetup = (() => {
     Blockly.Blocks['dobot_read_color_sensor'] = {
       init() {
         this.appendDummyInput()
-          .appendField('🎨 Read Color Sensor');
+          .appendField('🎨 Read Color Sensor on GP Port')
+          .appendField(new Blockly.FieldDropdown([
+            ['GP1','1'],['GP2','2'],['GP4','4'],['GP5','5'],
+          ]), 'PORT');
         this.setOutput(true, 'String');
         this.setColour(COLORS.sensor);
-        this.setTooltip('Read the color sensor. Returns the detected color (e.g., "red", "green", "blue").');
+        this.setTooltip('Read the color sensor on the specified GP port. Returns the detected color (e.g., "red", "green", "blue").');
       }
     };
 
     Blockly.Blocks['dobot_read_infrared'] = {
       init() {
         this.appendDummyInput()
-          .appendField('📡 Read Infrared Sensor');
+          .appendField('📡 Read Infrared Sensor on GP Port')
+          .appendField(new Blockly.FieldDropdown([
+            ['GP1','1'],['GP2','2'],['GP4','4'],['GP5','5'],
+          ]), 'PORT');
         this.setOutput(true, 'Number');
         this.setColour(COLORS.sensor);
-        this.setTooltip('Read the infrared sensor distance value in millimeters.');
+        this.setTooltip('Read the infrared sensor distance value (mm) on the specified GP port.');
       }
     };
 
     Blockly.Blocks['dobot_infrared_detected'] = {
       init() {
         this.appendDummyInput()
-          .appendField('📡 Infrared Object Detected?');
+          .appendField('📡 Infrared Object Detected? on GP Port')
+          .appendField(new Blockly.FieldDropdown([
+            ['GP1','1'],['GP2','2'],['GP4','4'],['GP5','5'],
+          ]), 'PORT');
         this.setOutput(true, 'Boolean');
         this.setColour(COLORS.sensor);
-        this.setTooltip('Returns true if the infrared sensor detects an object nearby.');
+        this.setTooltip('Returns true if the infrared sensor on the specified GP port detects an object nearby.');
       }
     };
 
@@ -392,7 +401,11 @@ const BlocklySetup = (() => {
       init() {
         this.appendValueInput('SPEED')
           .setCheck('Number')
-          .appendField('🏭 Set Conveyor Speed');
+          .appendField('🏭 Set Conveyor')
+          .appendField(new Blockly.FieldDropdown([
+            ['STEPPER1','1'],['STEPPER2','2'],
+          ]), 'PORT')
+          .appendField('Speed');
         this.appendDummyInput()
           .appendField('mm/s')
           .appendField(new Blockly.FieldDropdown([
@@ -403,18 +416,21 @@ const BlocklySetup = (() => {
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
         this.setColour(COLORS.conveyor);
-        this.setTooltip('Set the conveyor belt speed and direction.');
+        this.setTooltip('Set the speed and direction of the conveyor belt on the selected Stepper port.');
       }
     };
 
     Blockly.Blocks['dobot_conveyor_stop'] = {
       init() {
         this.appendDummyInput()
-          .appendField('⏹️ Stop Conveyor Belt');
+          .appendField('⏹️ Stop Conveyor Belt')
+          .appendField(new Blockly.FieldDropdown([
+            ['STEPPER1','1'],['STEPPER2','2'],
+          ]), 'PORT');
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
         this.setColour(COLORS.conveyor);
-        this.setTooltip('Stop the conveyor belt.');
+        this.setTooltip('Stop the conveyor belt on the selected Stepper port.');
       }
     };
 
@@ -422,7 +438,10 @@ const BlocklySetup = (() => {
       init() {
         this.appendValueInput('DISTANCE')
           .setCheck('Number')
-          .appendField('🏭 Move Conveyor');
+          .appendField('🏭 Move Conveyor')
+          .appendField(new Blockly.FieldDropdown([
+            ['STEPPER1','1'],['STEPPER2','2'],
+          ]), 'PORT');
         this.appendDummyInput()
           .appendField('mm')
           .appendField(new Blockly.FieldDropdown([
@@ -433,7 +452,7 @@ const BlocklySetup = (() => {
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
         this.setColour(COLORS.conveyor);
-        this.setTooltip('Move the conveyor belt a specific distance in millimeters.');
+        this.setTooltip('Move the conveyor belt on the selected Stepper port a specific distance in millimeters.');
       }
     };
 
@@ -575,7 +594,294 @@ const BlocklySetup = (() => {
         this.setTooltip('Stop the AI Starter robot wheels.');
       }
     };
+
+    // ── VEX V5 BLOCKS ──────────────────────────────────────────────────
+
+    Blockly.Blocks['vex_motor_spin'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('⚙️ Spin Motor on Port')
+          .appendField(new Blockly.FieldDropdown([
+            ['PORT1','1'],['PORT2','2'],['PORT3','3'],['PORT4','4'],
+            ['PORT5','5'],['PORT6','6'],['PORT7','7'],['PORT8','8'],
+            ['PORT9','9'],['PORT10','10'],['PORT11','11'],['PORT12','12'],
+          ]), 'PORT')
+          .appendField(new Blockly.FieldDropdown([
+            ['Forward', 'FORWARD'],
+            ['Reverse', 'REVERSE'],
+          ]), 'DIR')
+          .appendField('at')
+          .appendField(new Blockly.FieldNumber(50, 0, 100), 'VELOCITY')
+          .appendField('% velocity');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.vex);
+        this.setTooltip('Spin a VEX V5 motor on the given port at the specified velocity (0–100%).');
+      }
+    };
+
+    Blockly.Blocks['vex_motor_stop'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('⏹️ Stop Motor on Port')
+          .appendField(new Blockly.FieldDropdown([
+            ['PORT1','1'],['PORT2','2'],['PORT3','3'],['PORT4','4'],
+            ['PORT5','5'],['PORT6','6'],['PORT7','7'],['PORT8','8'],
+            ['PORT9','9'],['PORT10','10'],['PORT11','11'],['PORT12','12'],
+          ]), 'PORT');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.vex);
+        this.setTooltip('Stop a VEX V5 motor on the given port.');
+      }
+    };
+
+    Blockly.Blocks['vex_motor_spin_for'] = {
+      init() {
+        this.appendValueInput('AMOUNT')
+          .setCheck('Number')
+          .appendField('⚙️ Spin Motor Port')
+          .appendField(new Blockly.FieldDropdown([
+            ['PORT1','1'],['PORT2','2'],['PORT3','3'],['PORT4','4'],
+            ['PORT5','5'],['PORT6','6'],['PORT7','7'],['PORT8','8'],
+            ['PORT9','9'],['PORT10','10'],['PORT11','11'],['PORT12','12'],
+          ]), 'PORT')
+          .appendField(new Blockly.FieldDropdown([
+            ['Forward', 'FORWARD'],
+            ['Reverse', 'REVERSE'],
+          ]), 'DIR');
+        this.appendDummyInput()
+          .appendField(new Blockly.FieldDropdown([
+            ['degrees', 'DEGREES'],
+            ['rotations', 'TURNS'],
+          ]), 'UNIT');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.vex);
+        this.setTooltip('Spin a VEX V5 motor a specific number of degrees or rotations.');
+      }
+    };
+
+    Blockly.Blocks['vex_drive_forward'] = {
+      init() {
+        this.appendValueInput('DISTANCE')
+          .setCheck('Number')
+          .appendField('🚗 Drive Forward');
+        this.appendDummyInput()
+          .appendField(new Blockly.FieldDropdown([
+            ['mm', 'MM'],
+            ['inches', 'IN'],
+          ]), 'UNIT');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.vex);
+        this.setTooltip('Drive the VEX V5 robot forward by the given distance.');
+      }
+    };
+
+    Blockly.Blocks['vex_drive_reverse'] = {
+      init() {
+        this.appendValueInput('DISTANCE')
+          .setCheck('Number')
+          .appendField('🚗 Drive Reverse');
+        this.appendDummyInput()
+          .appendField(new Blockly.FieldDropdown([
+            ['mm', 'MM'],
+            ['inches', 'IN'],
+          ]), 'UNIT');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.vex);
+        this.setTooltip('Drive the VEX V5 robot in reverse by the given distance.');
+      }
+    };
+
+    Blockly.Blocks['vex_turn'] = {
+      init() {
+        this.appendValueInput('DEGREES')
+          .setCheck('Number')
+          .appendField('↩️ Turn')
+          .appendField(new Blockly.FieldDropdown([
+            ['Right', 'RIGHT'],
+            ['Left', 'LEFT'],
+          ]), 'DIR');
+        this.appendDummyInput().appendField('degrees');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.vex);
+        this.setTooltip('Turn the VEX V5 robot left or right by the given number of degrees.');
+      }
+    };
+
+    Blockly.Blocks['vex_drive_stop'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('⏹️ Stop Drivetrain');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.vex);
+        this.setTooltip('Stop the VEX V5 drivetrain motors.');
+      }
+    };
+
+    Blockly.Blocks['vex_wait'] = {
+      init() {
+        this.appendValueInput('TIME')
+          .setCheck('Number')
+          .appendField('⏳ Wait');
+        this.appendDummyInput()
+          .appendField(new Blockly.FieldDropdown([
+            ['seconds', 'SECONDS'],
+            ['msec', 'MSEC'],
+          ]), 'UNIT');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.io);
+        this.setTooltip('Pause the VEX V5 program for the given amount of time.');
+      }
+    };
+
+    Blockly.Blocks['vex_print'] = {
+      init() {
+        this.appendValueInput('TEXT')
+          .setCheck('String')
+          .appendField('💬 Print to Brain Screen:');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.io);
+        this.setTooltip('Display a message on the VEX V5 Brain screen.');
+      }
+    };
+
+    Blockly.Blocks['vex_controller_axis'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🎮 Controller Axis')
+          .appendField(new Blockly.FieldDropdown([
+            ['Axis1 (Right X)', 'AXIS1'],
+            ['Axis2 (Right Y)', 'AXIS2'],
+            ['Axis3 (Left Y)',  'AXIS3'],
+            ['Axis4 (Left X)',  'AXIS4'],
+          ]), 'AXIS');
+        this.setOutput(true, 'Number');
+        this.setColour(COLORS.vex);
+        this.setTooltip('Read a controller joystick axis value (-100 to 100).');
+      }
+    };
+
+    Blockly.Blocks['vex_controller_button'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🎮 Controller Button')
+          .appendField(new Blockly.FieldDropdown([
+            ['A', 'A'], ['B', 'B'], ['X', 'X'], ['Y', 'Y'],
+            ['Up',   'UP'],   ['Down', 'DOWN'],
+            ['Left', 'LEFT'], ['Right','RIGHT'],
+            ['L1', 'L1'], ['L2', 'L2'], ['R1', 'R1'], ['R2', 'R2'],
+          ]), 'BUTTON')
+          .appendField('pressed?');
+        this.setOutput(true, 'Boolean');
+        this.setColour(COLORS.vex);
+        this.setTooltip('Returns true if the selected controller button is currently pressed.');
+      }
+    };
+
+    Blockly.Blocks['vex_distance_sensor'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('📡 Distance Sensor on Port')
+          .appendField(new Blockly.FieldDropdown([
+            ['PORT1','1'],['PORT2','2'],['PORT3','3'],['PORT4','4'],
+            ['PORT5','5'],['PORT6','6'],['PORT7','7'],['PORT8','8'],
+          ]), 'PORT');
+        this.setOutput(true, 'Number');
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Read the VEX V5 distance sensor value in millimeters.');
+      }
+    };
+
+    Blockly.Blocks['vex_color_sensor_hue'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🎨 Color Sensor Hue on Port')
+          .appendField(new Blockly.FieldDropdown([
+            ['PORT1','1'],['PORT2','2'],['PORT3','3'],['PORT4','4'],
+            ['PORT5','5'],['PORT6','6'],['PORT7','7'],['PORT8','8'],
+          ]), 'PORT');
+        this.setOutput(true, 'Number');
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Read the color (hue, 0–360) detected by the VEX V5 optical sensor.');
+      }
+    };
+
+    Blockly.Blocks['vex_color_sensor_detect'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🎨 Object Detected by Color Sensor on Port')
+          .appendField(new Blockly.FieldDropdown([
+            ['PORT1','1'],['PORT2','2'],['PORT3','3'],['PORT4','4'],
+            ['PORT5','5'],['PORT6','6'],['PORT7','7'],['PORT8','8'],
+          ]), 'PORT');
+        this.setOutput(true, 'Boolean');
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Returns true if the VEX V5 optical sensor detects an object.');
+      }
+    };
+
+    Blockly.Blocks['vex_motor_position'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('📐 Motor Position on Port')
+          .appendField(new Blockly.FieldDropdown([
+            ['PORT1','1'],['PORT2','2'],['PORT3','3'],['PORT4','4'],
+            ['PORT5','5'],['PORT6','6'],['PORT7','7'],['PORT8','8'],
+          ]), 'PORT');
+        this.setOutput(true, 'Number');
+        this.setColour(COLORS.vex);
+        this.setTooltip('Returns the current motor encoder position in degrees.');
+      }
+    };
+
+    Blockly.Blocks['vex_motor_reset_position'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🔄 Reset Motor Position on Port')
+          .appendField(new Blockly.FieldDropdown([
+            ['PORT1','1'],['PORT2','2'],['PORT3','3'],['PORT4','4'],
+            ['PORT5','5'],['PORT6','6'],['PORT7','7'],['PORT8','8'],
+          ]), 'PORT');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.vex);
+        this.setTooltip('Reset the motor encoder position to zero.');
+      }
+    };
+
+    Blockly.Blocks['vex_pneumatic'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('💨 Pneumatics on Port')
+          .appendField(new Blockly.FieldDropdown([
+            ['PORT A','A'],['PORT B','B'],['PORT C','C'],['PORT D','D'],
+            ['PORT E','E'],['PORT F','F'],['PORT G','G'],['PORT H','H'],
+          ]), 'PORT')
+          .appendField(new Blockly.FieldDropdown([
+            ['Extend', 'EXTEND'],
+            ['Retract', 'RETRACT'],
+          ]), 'ACTION');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.vex);
+        this.setTooltip('Extend or retract a pneumatic cylinder connected to the VEX V5 pneumatic port.');
+      }
+    };
   };
+
 
   /* ---- Python code generators for each block ---- */
   const defineGenerators = () => {
@@ -628,19 +934,33 @@ const BlocklySetup = (() => {
     P['dobot_ai_color_detect']= () => ['robot.ai_detect_color()', P.ORDER_FUNCTION_CALL];
     P['dobot_ai_face_detect'] = () => ['robot.ai_detect_face()', P.ORDER_FUNCTION_CALL];
     P['dobot_ai_grab_detected'] = () => 'robot.ai_grab_detected()\n';
-    P['dobot_read_color_sensor'] = () => ['robot.read_color_sensor()', P.ORDER_FUNCTION_CALL];
-    P['dobot_read_infrared']     = () => ['robot.read_infrared()', P.ORDER_FUNCTION_CALL];
-    P['dobot_infrared_detected'] = () => ['robot.infrared_detected()', P.ORDER_FUNCTION_CALL];
+    P['dobot_read_color_sensor'] = (b) => {
+      const port = b.getFieldValue('PORT') || 1;
+      return [`robot.read_color_sensor()  # GP${port} (init first with robot.init_color_sensor(${port}))`, P.ORDER_FUNCTION_CALL];
+    };
+    P['dobot_read_infrared']     = (b) => {
+      const port = b.getFieldValue('PORT') || 1;
+      return [`robot.read_infrared()  # GP${port} (init first with robot.init_infrared(${port}))`, P.ORDER_FUNCTION_CALL];
+    };
+    P['dobot_infrared_detected'] = (b) => {
+      const port = b.getFieldValue('PORT') || 1;
+      return [`robot.infrared_detected()  # GP${port} (init first with robot.init_infrared(${port}))`, P.ORDER_FUNCTION_CALL];
+    };
     P['dobot_conveyor_speed']    = (b) => {
       const speed = P.valueToCode(b, 'SPEED', P.ORDER_NONE) || 50;
       const dir = b.getFieldValue('DIRECTION');
-      return `robot.conveyor_speed(${speed}, '${dir}')\n`;
+      const port = b.getFieldValue('PORT') || 1;
+      return `robot.init_conveyor(${port})\nrobot.conveyor_speed(${speed}, '${dir}')\n`;
     };
-    P['dobot_conveyor_stop']     = () => 'robot.conveyor_stop()\n';
+    P['dobot_conveyor_stop']     = (b) => {
+      const port = b.getFieldValue('PORT') || 1;
+      return `robot.init_conveyor(${port})\nrobot.conveyor_stop()\n`;
+    };
     P['dobot_conveyor_distance'] = (b) => {
       const dist = P.valueToCode(b, 'DISTANCE', P.ORDER_NONE) || 100;
       const dir = b.getFieldValue('DIRECTION');
-      return `robot.conveyor_move(${dist}, '${dir}')\n`;
+      const port = b.getFieldValue('PORT') || 1;
+      return `robot.init_conveyor(${port})\nrobot.conveyor_move(${dist}, '${dir}')\n`;
     };
     P['dobot_move_delta_r']  = (b) => {
       const dr = P.valueToCode(b, 'DR', P.ORDER_NONE) || 0;
@@ -659,11 +979,197 @@ const BlocklySetup = (() => {
       return `robot.turn_${dir}(${deg})\n`;
     };
     P['ai_starter_stop'] = () => 'robot.stop_driving()\n';
+
+    // ── VEX V5 Python generators ──────────────────────────────────────
+    P['vex_motor_spin'] = (b) => {
+      const port = b.getFieldValue('PORT');
+      const dir  = b.getFieldValue('DIR');
+      const vel  = b.getFieldValue('VELOCITY');
+      return `motor${port} = Motor(Ports.PORT${port})\nmotor${port}.spin(${dir}, ${vel}, PERCENT)\n`;
+    };
+    P['vex_motor_stop'] = (b) => {
+      const port = b.getFieldValue('PORT');
+      return `motor${port} = Motor(Ports.PORT${port})\nmotor${port}.stop()\n`;
+    };
+    P['vex_motor_spin_for'] = (b) => {
+      const port   = b.getFieldValue('PORT');
+      const dir    = b.getFieldValue('DIR');
+      const amount = P.valueToCode(b, 'AMOUNT', P.ORDER_NONE) || 90;
+      const unit   = b.getFieldValue('UNIT');
+      return `motor${port} = Motor(Ports.PORT${port})\nmotor${port}.spin_for(${dir}, ${amount}, ${unit})\n`;
+    };
+    P['vex_drive_forward'] = (b) => {
+      const dist = P.valueToCode(b, 'DISTANCE', P.ORDER_NONE) || 200;
+      const unit = b.getFieldValue('UNIT');
+      return `drivetrain.drive_for(FORWARD, ${dist}, ${unit})\n`;
+    };
+    P['vex_drive_reverse'] = (b) => {
+      const dist = P.valueToCode(b, 'DISTANCE', P.ORDER_NONE) || 200;
+      const unit = b.getFieldValue('UNIT');
+      return `drivetrain.drive_for(REVERSE, ${dist}, ${unit})\n`;
+    };
+    P['vex_turn'] = (b) => {
+      const dir  = b.getFieldValue('DIR');
+      const deg  = P.valueToCode(b, 'DEGREES', P.ORDER_NONE) || 90;
+      return `drivetrain.turn_for(${dir}, ${deg}, DEGREES)\n`;
+    };
+    P['vex_drive_stop'] = () => 'drivetrain.stop()\n';
+    P['vex_wait'] = (b) => {
+      const t    = P.valueToCode(b, 'TIME', P.ORDER_NONE) || 1;
+      const unit = b.getFieldValue('UNIT');
+      const ms   = unit === 'SECONDS' ? `int(${t} * 1000)` : String(t);
+      return `wait(${ms}, MSEC)\n`;
+    };
+    P['vex_print'] = (b) => {
+      const text = P.valueToCode(b, 'TEXT', P.ORDER_NONE) || '""';
+      return `brain.screen.print(${text})\nbrain.screen.next_row()\n`;
+    };
+    P['vex_controller_axis'] = (b) => {
+      const axis = b.getFieldValue('AXIS');
+      const axisNum = axis.replace('AXIS', '');
+      return [`controller_1.axis${axisNum}.position()`, P.ORDER_FUNCTION_CALL];
+    };
+    P['vex_controller_button'] = (b) => {
+      const btn = b.getFieldValue('BUTTON');
+      return [`controller_1.button${btn}.pressing()`, P.ORDER_FUNCTION_CALL];
+    };
+    P['vex_distance_sensor'] = (b) => {
+      const port = b.getFieldValue('PORT');
+      return [`Distance(Ports.PORT${port}).object_distance(MM)`, P.ORDER_FUNCTION_CALL];
+    };
+    P['vex_color_sensor_hue'] = (b) => {
+      const port = b.getFieldValue('PORT');
+      return [`ColorSensor(Ports.PORT${port}).hue()`, P.ORDER_FUNCTION_CALL];
+    };
+    P['vex_color_sensor_detect'] = (b) => {
+      const port = b.getFieldValue('PORT');
+      return [`ColorSensor(Ports.PORT${port}).is_near_object()`, P.ORDER_FUNCTION_CALL];
+    };
+    P['vex_motor_position'] = (b) => {
+      const port = b.getFieldValue('PORT');
+      return [`Motor(Ports.PORT${port}).position(DEGREES)`, P.ORDER_FUNCTION_CALL];
+    };
+    P['vex_motor_reset_position'] = (b) => {
+      const port = b.getFieldValue('PORT');
+      return `Motor(Ports.PORT${port}).reset_position()\n`;
+    };
+    P['vex_pneumatic'] = (b) => {
+      const port      = b.getFieldValue('PORT');
+      const action    = b.getFieldValue('ACTION');
+      const operation = action === 'EXTEND' ? 'open' : 'close';
+      return `Pneumatics(brain.three_wire_port.${port.toLowerCase()}).${operation}()\n`;
+    };
   };
 
   /* ---- Toolbox XML (dynamic based on robot type) ---- */
   const getToolbox = (robotType) => {
     const contents = [];
+
+    // ── VEX V5 gets its own dedicated toolbox ──
+    if (robotType === 'vex_v5') {
+      contents.push({
+        kind: 'category', name: '🚗 Drivetrain', colour: COLORS.vex,
+        contents: [
+          { kind: 'block', type: 'vex_drive_forward',
+            inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 200 } } } } },
+          { kind: 'block', type: 'vex_drive_reverse',
+            inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 200 } } } } },
+          { kind: 'block', type: 'vex_turn',
+            inputs: { DEGREES: { block: { type: 'math_number', fields: { NUM: 90 } } } } },
+          { kind: 'block', type: 'vex_drive_stop' },
+        ]
+      });
+      contents.push({
+        kind: 'category', name: '⚙️ Motors', colour: COLORS.vex,
+        contents: [
+          { kind: 'block', type: 'vex_motor_spin' },
+          { kind: 'block', type: 'vex_motor_stop' },
+          { kind: 'block', type: 'vex_motor_spin_for',
+            inputs: { AMOUNT: { block: { type: 'math_number', fields: { NUM: 90 } } } } },
+          { kind: 'block', type: 'vex_motor_position' },
+          { kind: 'block', type: 'vex_motor_reset_position' },
+        ]
+      });
+      contents.push({
+        kind: 'category', name: '🎮 Controller', colour: COLORS.vex,
+        contents: [
+          { kind: 'block', type: 'vex_controller_axis' },
+          { kind: 'block', type: 'vex_controller_button' },
+        ]
+      });
+      contents.push({
+        kind: 'category', name: '📡 Sensors', colour: COLORS.sensor,
+        contents: [
+          { kind: 'block', type: 'vex_distance_sensor' },
+          { kind: 'block', type: 'vex_color_sensor_hue' },
+          { kind: 'block', type: 'vex_color_sensor_detect' },
+        ]
+      });
+      contents.push({
+        kind: 'category', name: '💨 Pneumatics', colour: COLORS.vex,
+        contents: [
+          { kind: 'block', type: 'vex_pneumatic' },
+        ]
+      });
+      contents.push({
+        kind: 'category', name: '⏱️ Actions', colour: COLORS.io,
+        contents: [
+          { kind: 'block', type: 'vex_wait',
+            inputs: { TIME: { block: { type: 'math_number', fields: { NUM: 1 } } } } },
+          { kind: 'block', type: 'vex_print',
+            inputs: { TEXT: { block: { type: 'text', fields: { TEXT: 'Hello!' } } } } },
+          { kind: 'block', type: 'dobot_emergency_stop' },
+        ]
+      });
+      // Standard logic/loops/math/text/variables/functions
+      contents.push({ kind: 'sep' });
+      contents.push({
+        kind: 'category', name: '🔀 Logic', colour: '#5b80a5',
+        contents: [
+          { kind: 'block', type: 'controls_if' },
+          { kind: 'block', type: 'controls_ifelse' },
+          { kind: 'block', type: 'logic_compare' },
+          { kind: 'block', type: 'logic_operation' },
+          { kind: 'block', type: 'logic_negate' },
+          { kind: 'block', type: 'logic_boolean' },
+        ]
+      });
+      contents.push({
+        kind: 'category', name: '🔁 Loops', colour: COLORS.control,
+        contents: [
+          { kind: 'block', type: 'controls_repeat_ext',
+            inputs: { TIMES: { block: { type: 'math_number', fields: { NUM: 5 } } } } },
+          { kind: 'block', type: 'controls_whileUntil' },
+          { kind: 'block', type: 'controls_for' },
+        ]
+      });
+      contents.push({
+        kind: 'category', name: '🔢 Math', colour: COLORS.math,
+        contents: [
+          { kind: 'block', type: 'math_number' },
+          { kind: 'block', type: 'math_arithmetic' },
+          { kind: 'block', type: 'math_single' },
+          { kind: 'block', type: 'math_modulo' },
+          { kind: 'block', type: 'math_random_int' },
+        ]
+      });
+      contents.push({
+        kind: 'category', name: '📝 Text', colour: '#64748b',
+        contents: [
+          { kind: 'block', type: 'text' },
+          { kind: 'block', type: 'text_join' },
+        ]
+      });
+      contents.push({
+        kind: 'category', name: '📦 Variables', colour: '#7c3aed',
+        custom: 'VARIABLE',
+      });
+      contents.push({
+        kind: 'category', name: '🧩 Functions', colour: '#9333ea',
+        custom: 'PROCEDURE',
+      });
+      return { kind: 'categoryToolbox', contents };
+    }
 
     // ── Movement ──
     let movementBlocks;
@@ -913,23 +1419,29 @@ const BlocklySetup = (() => {
 
     // Add starter block on fresh workspace
     if (workspace.getAllBlocks(false).length === 0) {
-      addStarterBlocks();
+      addStarterBlocks(robotType);
     }
+
+    _currentRobotType = robotType || 'magician';
 
     return workspace;
   };
 
+  let _currentRobotType = 'magician';
+
   /** Update the toolbox when robot type changes */
   const updateToolbox = (robotType) => {
     if (!workspace) return;
-    const toolbox = getToolbox(robotType || 'magician');
+    _currentRobotType = robotType || 'magician';
+    const toolbox = getToolbox(_currentRobotType);
     workspace.updateToolbox(toolbox);
   };
 
-  const addStarterBlocks = () => {
+  const addStarterBlocks = (robotType) => {
+    const blockType = (robotType === 'vex_v5') ? 'vex_drive_forward' : 'dobot_move_home';
     const xml = Blockly.utils.xml.textToDom(`
       <xml>
-        <block type="dobot_move_home" x="40" y="40"></block>
+        <block type="${blockType}" x="40" y="40"></block>
       </xml>
     `);
     Blockly.Xml.domToWorkspace(xml, workspace);
@@ -941,6 +1453,24 @@ const BlocklySetup = (() => {
     if (!workspace) return '';
     try {
       const code = Blockly.Python.workspaceToCode(workspace);
+      if (_currentRobotType === 'vex_v5') {
+        return [
+          '# Auto-generated VEX V5 Python code from Blockly blocks',
+          '# Run this file using VEXcode V5 or upload via VEX Robot Mesh Studio',
+          'from vex import *',
+          '',
+          '# Initialize the VEX V5 Brain and Controller',
+          'brain   = Brain()',
+          'controller_1 = Controller(PRIMARY)',
+          '',
+          '# Define your motors and drivetrain here:',
+          '# left_motor  = Motor(Ports.PORT1, GearSetting.RATIO_18_1, False)',
+          '# right_motor = Motor(Ports.PORT2, GearSetting.RATIO_18_1, True)',
+          '# drivetrain  = Drivetrain(left_motor, right_motor, 219.44, 295, MM)',
+          '',
+          code,
+        ].join('\n');
+      }
       return `# Auto-generated Python code from Blockly blocks\nimport time\nfrom dobot_wrapper import DobotRobot\n\nrobot = DobotRobot()\n\n${code}`;
     } catch (e) {
       return `# Could not generate Python code: ${e.message}`;

@@ -211,6 +211,21 @@ const App = (() => {
       state.repos = repos;
       renderAssignmentList(repos, container);
       document.getElementById('stat-repos').textContent = repos.length;
+
+      // Populate org filter dropdown
+      const orgFilter = document.getElementById('dashboard-org-filter');
+      if (orgFilter) {
+        const orgs = [...new Set(repos.map(r => r.owner?.login || r.full_name.split('/')[0]))];
+        orgFilter.innerHTML = '<option value="">All Organizations</option>' +
+          orgs.map(o => `<option value="${o}">${o}</option>`).join('');
+      }
+
+      // Update organizations count stat
+      try {
+        const orgs = await GitHubAPI.getOrgs();
+        state.orgs = orgs;
+        document.getElementById('stat-classes').textContent = orgs.length;
+      } catch (_) { /* org count is optional */ }
     } catch (e) {
       container.innerHTML = `<div class="empty-state">
         <div class="empty-state-icon">⚠️</div>
@@ -218,6 +233,15 @@ const App = (() => {
         <div class="empty-state-desc">${e.message}</div>
       </div>`;
     }
+  };
+
+  const filterDashboardByOrg = (org) => {
+    const container = document.getElementById('assignments-list');
+    if (!container) return;
+    const filtered = org
+      ? state.repos.filter(r => (r.owner?.login || r.full_name.split('/')[0]) === org)
+      : state.repos;
+    renderAssignmentList(filtered, container);
   };
 
   const renderAssignmentList = (repos, container) => {
@@ -231,10 +255,8 @@ const App = (() => {
       return;
     }
 
-    const statusMap = { open: 'badge-blue', 'In Progress': 'badge-amber', Submitted: 'badge-green' };
-
     container.innerHTML = `<div class="assignment-list">
-      ${repos.slice(0, 20).map(repo => `
+      ${repos.slice(0, 30).map(repo => `
         <div class="assignment-card" onclick="App.openRepo('${repo.full_name}')">
           <div class="assignment-icon">📁</div>
           <div class="assignment-info">
@@ -367,7 +389,11 @@ const App = (() => {
 
   const initMonaco = () => {
     if (state.monacoReady || typeof monaco === 'undefined') {
-      // Fallback to textarea
+      // Fallback to textarea — set default code as value (not just placeholder)
+      const ta = document.getElementById('py-textarea');
+      if (ta && !ta.value) {
+        ta.value = getDefaultPythonCode(state.selectedRobot);
+      }
       document.getElementById('py-monaco-container').classList.add('hidden');
       document.getElementById('py-textarea-container').classList.remove('hidden');
       return;
@@ -383,14 +409,16 @@ const App = (() => {
         wordWrap: 'on',
         automaticLayout: true,
         padding: { top: 12 },
-        value: (() => {
-          const port = localStorage.getItem('robot_port') || 'COM3';
-          return `# Write your Python code here\nimport time\nfrom dobot_wrapper import DobotRobot\n\nrobot = DobotRobot(port='${port}')\n\n# Example:\nrobot.move_home()\ntime.sleep(1)\nrobot.grab()\n`;
-        })(),
+        value: getDefaultPythonCode(state.selectedRobot),
       });
       state.monacoReady = true;
       window.monacoEditor.onDidChangeModelContent(() => scheduleAutoSave());
     } catch (e) {
+      // Monaco failed — fall back to textarea with default code
+      const ta = document.getElementById('py-textarea');
+      if (ta && !ta.value) {
+        ta.value = getDefaultPythonCode(state.selectedRobot);
+      }
       document.getElementById('py-monaco-container').classList.add('hidden');
       document.getElementById('py-textarea-container').classList.remove('hidden');
     }
@@ -622,19 +650,64 @@ const App = (() => {
     try {
       const repos = await GitHubAPI.getUserRepos();
       state.repos = repos;
-      container.innerHTML = repos.map(repo => `
-        <div class="repo-item" onclick="App.openRepo('${repo.full_name}')">
-          <span class="repo-item-icon">📁</span>
-          <div style="flex:1;min-width:0;">
-            <div class="repo-item-name">${repo.full_name}</div>
-            <div class="repo-item-meta">${repo.description || 'No description'} • ${timeAgo(repo.updated_at)}</div>
-          </div>
-          <span class="badge ${repo.private ? 'badge-gray' : 'badge-blue'}">${repo.private ? '🔒 Private' : '🌐 Public'}</span>
-        </div>
-      `).join('') || '<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-title">No repositories found</div></div>';
+      renderRepoList(repos, container);
     } catch (e) {
       container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">${e.message}</div></div>`;
     }
+  };
+
+  /**
+   * Render a list of repositories grouped by their owner (organization/user).
+   * Each group is shown as a collapsible folder section.
+   */
+  const renderRepoList = (repos, container) => {
+    if (!repos.length) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-title">No repositories found</div></div>';
+      return;
+    }
+
+    // Group repos by owner login
+    const groups = {};
+    repos.forEach(repo => {
+      const owner = repo.owner?.login || repo.full_name.split('/')[0];
+      if (!groups[owner]) groups[owner] = [];
+      groups[owner].push(repo);
+    });
+
+    const groupHtml = Object.entries(groups).map(([owner, ownerRepos]) => {
+      const reposHtml = ownerRepos.map(repo => `
+        <div class="repo-item" onclick="App.openRepo('${repo.full_name}')">
+          <span class="repo-item-icon">📄</span>
+          <div style="flex:1;min-width:0;">
+            <div class="repo-item-name">${repo.name}</div>
+            <div class="repo-item-meta">${repo.description || 'No description'} • ${timeAgo(repo.updated_at)}</div>
+          </div>
+          <span class="badge ${repo.private ? 'badge-gray' : 'badge-blue'}">${repo.private ? '🔒' : '🌐'}</span>
+        </div>
+      `).join('');
+
+      const groupId   = `repo-group-${owner.replace(/[^a-z0-9]/gi, '-')}-${ownerRepos.length}`;
+      return `
+        <div class="repo-group" id="${groupId}-container">
+          <div class="repo-group-header" onclick="(function(el){
+            var grp = el.closest('.repo-group');
+            var items = grp.querySelector('.repo-group-items');
+            items.classList.toggle('collapsed');
+            grp.classList.toggle('collapsed');
+          })(this)">
+            <span class="repo-group-icon">📁</span>
+            <span class="repo-group-name">${owner}</span>
+            <span class="badge badge-blue" style="margin-left:auto;">${ownerRepos.length}</span>
+            <span class="repo-group-chevron">▾</span>
+          </div>
+          <div class="repo-group-items">
+            ${reposHtml}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    container.innerHTML = groupHtml;
   };
 
   /* ---- VEX Upload ---- */
@@ -711,6 +784,7 @@ const App = (() => {
       { id: 'magician',    icon: '🦾', name: 'Dobot Magician',       desc: 'Classic 4-axis robot arm with suction & claw' },
       { id: 'ai_starter',  icon: '🤖', name: 'Dobot AI Starter',     desc: 'AI-powered wheeled robot with camera' },
       { id: 'magician_ai', icon: '🧠', name: 'Dobot Magician + AI',  desc: 'Magician arm with AI camera kit' },
+      { id: 'vex_v5',      icon: '🎮', name: 'VEX V5 Robot',         desc: 'VEX V5 Brain: motors, sensors, controller & pneumatics' },
     ];
 
     const container = document.getElementById('robot-cards');
@@ -726,6 +800,15 @@ const App = (() => {
     `).join('');
   };
 
+  const toggleDebugMode = (checkbox) => {
+    localStorage.setItem('debug_mode', checkbox.checked ? '1' : '');
+    toast(
+      checkbox.checked ? 'Debug Mode ON' : 'Debug Mode OFF',
+      checkbox.checked ? 'Verbose communication logging enabled' : 'Standard logging restored',
+      checkbox.checked ? 'warning' : 'info'
+    );
+  };
+
   const selectRobot = (id) => {
     state.selectedRobot = id;
     localStorage.setItem('selected_robot', id);
@@ -735,13 +818,44 @@ const App = (() => {
     if (state.blocklyReady) {
       BlocklySetup.updateToolbox(id);
     }
+    // Update Python editor default when switching robot type
+    if (state.monacoReady && window.monacoEditor && !state.currentFile) {
+      window.monacoEditor.setValue(getDefaultPythonCode(id));
+    }
     toast('Robot Selected', `Now coding for: ${id}`, 'success', 2000);
+  };
+
+  const getDefaultPythonCode = (robotType) => {
+    const port = localStorage.getItem('robot_port') || 'COM3';
+    if (robotType === 'vex_v5') {
+      return [
+        '# VEX V5 Python — write your robot code below',
+        '# Run this file using VEXcode V5 or Robot Mesh Studio',
+        'from vex import *',
+        '',
+        '# Initialize Brain and Controller',
+        'brain        = Brain()',
+        'controller_1 = Controller(PRIMARY)',
+        '',
+        '# Define your motors (adjust port numbers to match your wiring):',
+        '# left_motor  = Motor(Ports.PORT1, GearSetting.RATIO_18_1, False)',
+        '# right_motor = Motor(Ports.PORT2, GearSetting.RATIO_18_1, True)',
+        '# drivetrain  = Drivetrain(left_motor, right_motor, 219.44, 295, MM)',
+        '',
+        '# --- Start coding here ---',
+        '',
+      ].join('\n');
+    }
+    return `# Write your Python code here\nimport time\nfrom dobot_wrapper import DobotRobot\n\nrobot = DobotRobot(port='${port}')\n\n# --- Start coding here ---\nrobot.move_home()\ntime.sleep(1)\nrobot.grab()\n`;
   };
 
   const updateRobotStatus = () => {
     const label = document.getElementById('robot-status-label');
     const sub = document.getElementById('robot-status-sub');
-    const robots = { magician: 'Dobot Magician', ai_starter: 'Dobot AI Starter', magician_ai: 'Magician + AI' };
+    const robots = {
+      magician: 'Dobot Magician', ai_starter: 'Dobot AI Starter',
+      magician_ai: 'Magician + AI', vex_v5: 'VEX V5 Robot',
+    };
     if (label) label.textContent = robots[state.selectedRobot] || 'No Robot';
     if (sub) sub.textContent = 'Simulator Mode';
   };
@@ -754,11 +868,7 @@ const App = (() => {
     try {
       const result = await GitHubAPI.searchRepos(`${query} user:${state.user?.login}`);
       state.repos = result.items || [];
-      container.innerHTML = state.repos.map(repo => `
-        <div class="repo-item" onclick="App.openRepo('${repo.full_name}')">
-          <span class="repo-item-icon">📁</span>
-          <div style="flex:1"><div class="repo-item-name">${repo.full_name}</div></div>
-        </div>`).join('') || '<div class="text-muted text-sm" style="padding:16px;">No results</div>';
+      renderRepoList(state.repos, container);
     } catch (e) {
       container.innerHTML = `<div class="text-muted" style="padding:16px;">${e.message}</div>`;
     }
@@ -892,8 +1002,10 @@ const App = (() => {
     openRepo,
     openFile,
     selectRobot,
+    toggleDebugMode,
     saveCurrentFile,
     refreshDashboard,
+    filterDashboardByOrg,
     refreshRepositories,
     loadOrgRepos,
     generateAndSwitchToPython,

@@ -1467,3 +1467,54 @@ button, input, select, textarea {
   background: var(--color-border);
   margin: 20px 0;
 }
+
+/* ---- Repository Group (organized by org/owner) ---- */
+.repo-group {
+  margin-bottom: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.repo-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--color-surface-2);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13px;
+  list-style: none;
+  user-select: none;
+}
+.repo-group-header::-webkit-details-marker { display: none; }
+.repo-group-header::before {
+  content: '▶';
+  font-size: 10px;
+  transition: transform 0.15s;
+}
+details[open] .repo-group-header::before { transform: rotate(90deg); }
+.repo-group .assignment-list { padding: 8px; background: var(--color-surface); }
+
+/* ---- Python command tooltip via native title (enhanced with CSS) ---- */
+.py-cmd-btn {
+  position: relative;
+}
+.py-cmd-btn[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  left: 100%;
+  top: 0;
+  margin-left: 8px;
+  background: #1e293b;
+  color: #f1f5f9;
+  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  white-space: normal;
+  width: 220px;
+  z-index: 100;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  line-height: 1.4;
+}

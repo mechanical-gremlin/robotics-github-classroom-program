@@ -295,52 +295,81 @@
             <div id="py-command-panel" class="py-command-panel">
               <div class="py-command-header">📖 Command Reference</div>
               <div class="py-command-list">
-                <div class="py-cmd-section">Movement</div>
-                <button class="py-cmd-btn" data-insert="robot.move_home()">robot.move_home()</button>
-                <button class="py-cmd-btn" data-insert="robot.move_to(x, y, z)">robot.move_to(x, y, z)</button>
-                <button class="py-cmd-btn" data-insert="robot.move_forward(10)">robot.move_forward(mm)</button>
-                <button class="py-cmd-btn" data-insert="robot.move_backward(10)">robot.move_backward(mm)</button>
-                <button class="py-cmd-btn" data-insert="robot.move_left(10)">robot.move_left(mm)</button>
-                <button class="py-cmd-btn" data-insert="robot.move_right(10)">robot.move_right(mm)</button>
-                <button class="py-cmd-btn" data-insert="robot.move_up(10)">robot.move_up(mm)</button>
-                <button class="py-cmd-btn" data-insert="robot.move_down(10)">robot.move_down(mm)</button>
-                <button class="py-cmd-btn" data-insert="robot.move_delta(dx, dy, dz)">robot.move_delta(dx, dy, dz)</button>
-                <button class="py-cmd-btn" data-insert="robot.move_delta_r(45)">robot.move_delta_r(deg)</button>
-                <button class="py-cmd-btn" data-insert="robot.rotate_left(45)">robot.rotate_left(deg)</button>
-                <button class="py-cmd-btn" data-insert="robot.rotate_right(45)">robot.rotate_right(deg)</button>
-                <button class="py-cmd-btn" data-insert="robot.set_joint_angles(j1, j2, j3, j4)">robot.set_joint_angles(…)</button>
-                <button class="py-cmd-btn" data-insert="robot.get_position()">robot.get_position()</button>
-                <button class="py-cmd-btn" data-insert="robot.get_joint_angles()">robot.get_joint_angles()</button>
-                <div class="py-cmd-section">Gripper</div>
-                <button class="py-cmd-btn" data-insert="robot.grab()">robot.grab()</button>
-                <button class="py-cmd-btn" data-insert="robot.release()">robot.release()</button>
-                <button class="py-cmd-btn" data-insert="robot.claw_open()">robot.claw_open()</button>
-                <button class="py-cmd-btn" data-insert="robot.claw_close()">robot.claw_close()</button>
-                <div class="py-cmd-section">Speed &amp; I/O</div>
-                <button class="py-cmd-btn" data-insert="robot.set_speed('medium')">robot.set_speed(speed)</button>
-                <button class="py-cmd-btn" data-insert="time.sleep(1)">time.sleep(seconds)</button>
-                <button class="py-cmd-btn" data-insert="robot.beep()">robot.beep()</button>
-                <button class="py-cmd-btn" data-insert="robot.light('on')">robot.light(state)</button>
-                <div class="py-cmd-section">Sensors</div>
-                <button class="py-cmd-btn" data-insert="robot.init_color_sensor(1)">robot.init_color_sensor(port)</button>
-                <button class="py-cmd-btn" data-insert="robot.init_infrared(1)">robot.init_infrared(port)</button>
-                <button class="py-cmd-btn" data-insert="robot.read_color_sensor()">robot.read_color_sensor()</button>
-                <button class="py-cmd-btn" data-insert="robot.read_infrared()">robot.read_infrared()</button>
-                <button class="py-cmd-btn" data-insert="robot.infrared_detected()">robot.infrared_detected()</button>
-                <div class="py-cmd-section">Conveyor Belt</div>
-                <button class="py-cmd-btn" data-insert="robot.init_conveyor(1)">robot.init_conveyor(port)</button>
-                <button class="py-cmd-btn" data-insert="robot.conveyor_speed(50, 'forward')">robot.conveyor_speed(…)</button>
-                <button class="py-cmd-btn" data-insert="robot.conveyor_stop()">robot.conveyor_stop()</button>
-                <button class="py-cmd-btn" data-insert="robot.conveyor_move(100, 'forward')">robot.conveyor_move(…)</button>
-                <div class="py-cmd-section">AI Features</div>
-                <button class="py-cmd-btn" data-insert="robot.ai_detect_object()">robot.ai_detect_object()</button>
-                <button class="py-cmd-btn" data-insert="robot.ai_detect_color()">robot.ai_detect_color()</button>
-                <button class="py-cmd-btn" data-insert="robot.ai_detect_face()">robot.ai_detect_face()</button>
-                <button class="py-cmd-btn" data-insert="robot.ai_grab_detected()">robot.ai_grab_detected()</button>
-                <button class="py-cmd-btn" data-insert="robot.ai_follow_line()">robot.ai_follow_line()</button>
-                <div class="py-cmd-section">Safety</div>
-                <button class="py-cmd-btn" data-insert="robot.emergency_stop()">robot.emergency_stop()</button>
-                <button class="py-cmd-btn" data-insert="robot.reset_emergency()">robot.reset_emergency()</button>
+                <!-- Dobot commands (hidden when VEX V5 is selected) -->
+                <div class="py-cmd-dobot-only">
+                  <div class="py-cmd-section">Movement</div>
+                  <button class="py-cmd-btn" data-insert="robot.move_home()" title="Move the arm back to its home/starting position.">robot.move_home()</button>
+                  <button class="py-cmd-btn" data-insert="robot.move_to(x, y, z)" title="Move the arm to exact coordinates (x, y, z in mm).">robot.move_to(x, y, z)</button>
+                  <button class="py-cmd-btn" data-insert="robot.move_forward(10)" title="Move the arm forward by the given distance in mm.">robot.move_forward(mm)</button>
+                  <button class="py-cmd-btn" data-insert="robot.move_backward(10)" title="Move the arm backward by the given distance in mm.">robot.move_backward(mm)</button>
+                  <button class="py-cmd-btn" data-insert="robot.move_left(10)" title="Move the arm to the left by the given distance in mm.">robot.move_left(mm)</button>
+                  <button class="py-cmd-btn" data-insert="robot.move_right(10)" title="Move the arm to the right by the given distance in mm.">robot.move_right(mm)</button>
+                  <button class="py-cmd-btn" data-insert="robot.move_up(10)" title="Raise the arm by the given distance in mm.">robot.move_up(mm)</button>
+                  <button class="py-cmd-btn" data-insert="robot.move_down(10)" title="Lower the arm by the given distance in mm.">robot.move_down(mm)</button>
+                  <button class="py-cmd-btn" data-insert="robot.move_delta(dx, dy, dz)" title="Move the arm relative to its current position (dx, dy, dz in mm).">robot.move_delta(dx, dy, dz)</button>
+                  <button class="py-cmd-btn" data-insert="robot.move_delta_r(45)" title="Rotate the end effector by delta degrees (positive = counter-clockwise).">robot.move_delta_r(deg)</button>
+                  <button class="py-cmd-btn" data-insert="robot.rotate_left(45)" title="Rotate the base of the arm to the left by the given degrees.">robot.rotate_left(deg)</button>
+                  <button class="py-cmd-btn" data-insert="robot.rotate_right(45)" title="Rotate the base of the arm to the right by the given degrees.">robot.rotate_right(deg)</button>
+                  <button class="py-cmd-btn" data-insert="robot.set_joint_angles(j1, j2, j3, j4)" title="Move the robot by setting all four joint angles directly in degrees.">robot.set_joint_angles(…)</button>
+                  <button class="py-cmd-btn" data-insert="robot.get_position()" title="Return the current arm position as (x, y, z, r).">robot.get_position()</button>
+                  <button class="py-cmd-btn" data-insert="robot.get_joint_angles()" title="Return the current joint angles as (J1, J2, J3, J4).">robot.get_joint_angles()</button>
+                  <button class="py-cmd-btn" data-insert="robot.update_position()" title="Re-read the arm position from the robot — useful after unlocking/re-engaging motors.">robot.update_position()</button>
+                  <div class="py-cmd-section">Gripper</div>
+                  <button class="py-cmd-btn" data-insert="robot.grab()" title="Turn the suction cup ON to pick up an object.">robot.grab()</button>
+                  <button class="py-cmd-btn" data-insert="robot.release()" title="Turn the suction cup OFF to release an object.">robot.release()</button>
+                  <button class="py-cmd-btn" data-insert="robot.claw_open()" title="Open the claw gripper to release an object.">robot.claw_open()</button>
+                  <button class="py-cmd-btn" data-insert="robot.claw_close()" title="Close the claw gripper to hold an object.">robot.claw_close()</button>
+                  <div class="py-cmd-section">Speed &amp; I/O</div>
+                  <button class="py-cmd-btn" data-insert="robot.set_speed('medium')" title="Set movement speed: 'slow', 'medium', or 'fast'.">robot.set_speed(speed)</button>
+                  <button class="py-cmd-btn" data-insert="time.sleep(1)" title="Pause the program for the given number of seconds.">time.sleep(seconds)</button>
+                  <button class="py-cmd-btn" data-insert="robot.beep()" title="Make the robot beep once.">robot.beep()</button>
+                  <button class="py-cmd-btn" data-insert="robot.light('on')" title="Control the indicator light: 'on' or 'off'.">robot.light(state)</button>
+                  <div class="py-cmd-section">Sensors</div>
+                  <button class="py-cmd-btn" data-insert="robot.init_color_sensor(1)" title="Initialize the color sensor on the specified GP port (1, 2, 4, or 5).">robot.init_color_sensor(port)</button>
+                  <button class="py-cmd-btn" data-insert="robot.init_infrared(1)" title="Initialize the infrared distance sensor on the specified GP port.">robot.init_infrared(port)</button>
+                  <button class="py-cmd-btn" data-insert="robot.read_color_sensor()" title="Read the detected color from the initialized color sensor. Returns a color name string.">robot.read_color_sensor()</button>
+                  <button class="py-cmd-btn" data-insert="robot.read_infrared()" title="Read the distance in mm from the initialized infrared sensor. Returns -1 if not available.">robot.read_infrared()</button>
+                  <button class="py-cmd-btn" data-insert="robot.infrared_detected()" title="Returns True if an object is detected within 100 mm by the infrared sensor.">robot.infrared_detected()</button>
+                  <div class="py-cmd-section">Conveyor Belt</div>
+                  <button class="py-cmd-btn" data-insert="robot.init_conveyor(1)" title="Initialize the conveyor belt on Stepper port 1 or 2. Call this before using conveyor commands.">robot.init_conveyor(port)</button>
+                  <button class="py-cmd-btn" data-insert="robot.conveyor_speed(50, 'forward', port=1)" title="Set the conveyor belt speed (mm/s), direction ('forward'/'backward'), and port (1 or 2).">robot.conveyor_speed(…)</button>
+                  <button class="py-cmd-btn" data-insert="robot.conveyor_stop(port=1)" title="Stop the conveyor belt on the specified Stepper port.">robot.conveyor_stop(port)</button>
+                  <button class="py-cmd-btn" data-insert="robot.conveyor_move(100, 'forward', port=1)" title="Move the conveyor belt a specific distance (mm) on the given port.">robot.conveyor_move(…)</button>
+                  <div class="py-cmd-section">AI Features</div>
+                  <button class="py-cmd-btn" data-insert="robot.ai_detect_object()" title="Use the AI camera to detect and name an object in view. Returns a string like 'cube'.">robot.ai_detect_object()</button>
+                  <button class="py-cmd-btn" data-insert="robot.ai_detect_color()" title="Detect the dominant color in the camera view. Returns 'red', 'blue', 'green', etc.">robot.ai_detect_color()</button>
+                  <button class="py-cmd-btn" data-insert="robot.ai_detect_face()" title="Detect whether a face is visible to the AI camera. Returns True or False.">robot.ai_detect_face()</button>
+                  <button class="py-cmd-btn" data-insert="robot.ai_grab_detected()" title="Move to the detected object and pick it up using the AI positioning system.">robot.ai_grab_detected()</button>
+                  <button class="py-cmd-btn" data-insert="robot.ai_follow_line()" title="Follow a line on the ground using the AI camera for the given duration.">robot.ai_follow_line()</button>
+                  <div class="py-cmd-section">Safety</div>
+                  <button class="py-cmd-btn" data-insert="robot.start_program()" title="Enable lock/unlock safety monitoring. Call at the start of your program.">robot.start_program()</button>
+                  <button class="py-cmd-btn" data-insert="robot.end_program()" title="Stop lock/unlock safety monitoring. Call at the end of your program.">robot.end_program()</button>
+                  <button class="py-cmd-btn" data-insert="robot.emergency_stop()" title="Immediately stop all robot movement and disable motors.">robot.emergency_stop()</button>
+                  <button class="py-cmd-btn" data-insert="robot.reset_emergency()" title="Reset the emergency stop so the robot can move again.">robot.reset_emergency()</button>
+                </div>
+                <!-- VEX V5 commands (hidden unless VEX V5 is selected) -->
+                <div id="py-cmd-vex-section" class="hidden">
+                  <div class="py-cmd-section">Drivetrain</div>
+                  <button class="py-cmd-btn" data-insert="drivetrain.drive_for(FORWARD, 12, INCHES)" title="Drive the VEX V5 robot forward for the given distance.">drivetrain.drive_for(dir, dist, units)</button>
+                  <button class="py-cmd-btn" data-insert="drivetrain.turn_for(RIGHT, 90, DEGREES)" title="Turn the VEX V5 robot by the given angle.">drivetrain.turn_for(dir, deg, DEGREES)</button>
+                  <button class="py-cmd-btn" data-insert="drivetrain.stop(BRAKE)" title="Stop the drivetrain. Mode: BRAKE, COAST, or HOLD.">drivetrain.stop(mode)</button>
+                  <button class="py-cmd-btn" data-insert="drivetrain.set_drive_velocity(50, PERCENT)" title="Set the drivetrain speed as a percentage (0–100).">drivetrain.set_drive_velocity(%, PERCENT)</button>
+                  <div class="py-cmd-section">Motors</div>
+                  <button class="py-cmd-btn" data-insert="Motor(Ports.PORT1).spin(FORWARD, 50, PERCENT)" title="Spin a motor on the given port at the given speed and direction.">Motor(port).spin(dir, speed, PERCENT)</button>
+                  <button class="py-cmd-btn" data-insert="Motor(Ports.PORT1).stop(BRAKE)" title="Stop a motor on the given port.">Motor(port).stop(mode)</button>
+                  <button class="py-cmd-btn" data-insert="Motor(Ports.PORT1).spin_for(FORWARD, 90, DEGREES)" title="Spin a motor for a specific amount of degrees, revolutions, or seconds.">Motor(port).spin_for(dir, amount, units)</button>
+                  <div class="py-cmd-section">Sensors</div>
+                  <button class="py-cmd-btn" data-insert="Distance(Ports.PORT1).object_distance(MM)" title="Read the distance (mm) from a VEX V5 Distance Sensor.">Distance(port).object_distance(MM)</button>
+                  <button class="py-cmd-btn" data-insert="Color(Ports.PORT1).color()" title="Read the detected color from a VEX V5 Color Sensor.">Color(port).color()</button>
+                  <button class="py-cmd-btn" data-insert="Bumper(Ports.PORT1).pressing()" title="Returns True if the VEX V5 Bumper Switch is pressed.">Bumper(port).pressing()</button>
+                  <button class="py-cmd-btn" data-insert="Inertial(Ports.PORT2).heading()" title="Read the heading (0–360°) from the VEX V5 Inertial/Gyro Sensor.">Inertial(port).heading()</button>
+                  <div class="py-cmd-section">Controller</div>
+                  <button class="py-cmd-btn" data-insert="controller.ButtonA.pressing()" title="Returns True if the A button on the VEX V5 Controller is pressed.">controller.ButtonA.pressing()</button>
+                  <button class="py-cmd-btn" data-insert="controller.Axis3.position()" title="Read joystick axis position (-100 to 100). Axis3 = Left Y, Axis4 = Left X, Axis1 = Right X, Axis2 = Right Y.">controller.Axis3.position()</button>
+                  <div class="py-cmd-section">Brain &amp; Timing</div>
+                  <button class="py-cmd-btn" data-insert="brain.screen.print('Hello')" title="Print text on the VEX V5 Brain screen.">brain.screen.print(text)</button>
+                  <button class="py-cmd-btn" data-insert="wait(1000, MSEC)" title="Pause the program for the given number of milliseconds.">wait(msec, MSEC)</button>
+                </div>
               </div>
             </div>
             <!-- Editor Area -->
@@ -618,6 +647,10 @@
           <div class="grid-4" id="robot-cards">
             <!-- Rendered by JS -->
           </div>
+          <!-- Debug mode toggle (rendered by JS into this container) -->
+          <div id="debug-mode-container" style="margin-top:16px;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">
+            <!-- Populated by renderRobotSelector() -->
+          </div>
         </div>
       </div>
 
@@ -650,7 +683,7 @@
             </div>
             <div>
               <div style="font-weight:700;margin-bottom:4px;">📚 Supported Robots</div>
-              <div class="text-muted">Dobot Magician, Dobot AI Starter, Dobot Magician AI Kit</div>
+              <div class="text-muted">Dobot Magician, Dobot AI Starter, Dobot Magician AI Kit, VEX V5</div>
             </div>
             <div>
               <div style="font-weight:700;margin-bottom:4px;">💻 Coding Modes</div>

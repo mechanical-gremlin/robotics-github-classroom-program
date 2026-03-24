@@ -8,7 +8,7 @@ const App = (() => {
   let state = {
     role: 'student',   // 'student' | 'teacher'
     user: null,
-    selectedRobot: 'magician', // 'magician' | 'ai_starter' | 'magician_ai'
+    selectedRobot: 'magician', // 'magician' | 'ai_starter' | 'magician_ai' | 'vex_v5'
     currentView: 'dashboard',
     currentRepo: null,
     currentFile: null,
@@ -21,6 +21,7 @@ const App = (() => {
     orgs: [],
     students: [],
     autoSaveTimer: null,
+    debugMode: false,        // advanced/verbose communication debug mode
   };
 
   /* ---- Toast Notifications ---- */
@@ -231,16 +232,26 @@ const App = (() => {
       return;
     }
 
-    const statusMap = { open: 'badge-blue', 'In Progress': 'badge-amber', Submitted: 'badge-green' };
+    // Group repos by owner (organization or personal account)
+    const groups = {};
+    repos.slice(0, 50).forEach(repo => {
+      const owner = repo.owner?.login || 'Unknown';
+      if (!groups[owner]) groups[owner] = [];
+      groups[owner].push(repo);
+    });
 
-    container.innerHTML = `<div class="assignment-list">
-      ${repos.slice(0, 20).map(repo => `
+    const ownerNames = Object.keys(groups).sort();
+    const html = ownerNames.map(owner => {
+      const ownerRepos = groups[owner];
+      const isOrg = ownerRepos[0]?.owner?.type === 'Organization';
+      const icon = isOrg ? '🏫' : '👤';
+      const cards = ownerRepos.map(repo => `
         <div class="assignment-card" onclick="App.openRepo('${repo.full_name}')">
           <div class="assignment-icon">📁</div>
           <div class="assignment-info">
             <div class="assignment-title">${repo.name}</div>
             <div class="assignment-meta">
-              ${repo.owner.login} • Updated ${timeAgo(repo.updated_at)}
+              Updated ${timeAgo(repo.updated_at)}
               ${repo.private ? ' 🔒' : ''}
             </div>
           </div>
@@ -249,8 +260,19 @@ const App = (() => {
             <span class="text-muted" style="font-size:18px;">›</span>
           </div>
         </div>
-      `).join('')}
-    </div>`;
+      `).join('');
+
+      return `
+        <details class="repo-group" open>
+          <summary class="repo-group-header">
+            <span>${icon} ${owner}</span>
+            <span class="badge badge-gray" style="margin-left:auto;">${ownerRepos.length}</span>
+          </summary>
+          <div class="assignment-list">${cards}</div>
+        </details>`;
+    }).join('');
+
+    container.innerHTML = html;
   };
 
   const openRepo = async (fullName) => {
@@ -365,6 +387,45 @@ const App = (() => {
     }
   };
 
+  const getDefaultPythonCode = () => {
+    const port = localStorage.getItem('robot_port') || 'COM3';
+    const debug = state.debugMode;
+    if (state.selectedRobot === 'vex_v5') {
+      return [
+        '# VEX V5 Python — run using VEXcode V5 or the VEX VS Code extension',
+        'from vex import *',
+        '',
+        '# --- Device setup ---',
+        '# Adjust port numbers to match your physical wiring.',
+        'brain      = Brain()',
+        'controller = Controller()',
+        'left_motor  = Motor(Ports.PORT1,  GearSetting.RATIO18_1, False)',
+        'right_motor = Motor(Ports.PORT10, GearSetting.RATIO18_1, True)',
+        'drivetrain  = SmartDrive(left_motor, right_motor, Gyro(Ports.PORT2))',
+        '',
+        '# --- Start coding here ---',
+        'drivetrain.drive_for(FORWARD, 12, INCHES)',
+        'drivetrain.turn_for(RIGHT, 90, DEGREES)',
+        'drivetrain.stop(BRAKE)',
+      ].join('\n');
+    }
+    const debugParam = debug ? ', debug=True' : '';
+    return [
+      '# Write your Dobot Python code here',
+      '# Connect your robot to the computer, then run this file.',
+      'import time',
+      'from dobot_wrapper import DobotRobot',
+      '',
+      `# Change '${port}' to your robot's COM port if needed`,
+      `robot = DobotRobot(port='${port}'${debugParam})`,
+      '',
+      '# --- Start coding here ---',
+      'robot.move_home()',
+      'time.sleep(1)',
+      'robot.grab()',
+    ].join('\n');
+  };
+
   const initMonaco = () => {
     if (state.monacoReady || typeof monaco === 'undefined') {
       // Fallback to textarea
@@ -383,10 +444,7 @@ const App = (() => {
         wordWrap: 'on',
         automaticLayout: true,
         padding: { top: 12 },
-        value: (() => {
-          const port = localStorage.getItem('robot_port') || 'COM3';
-          return `# Write your Python code here\nimport time\nfrom dobot_wrapper import DobotRobot\n\nrobot = DobotRobot(port='${port}')\n\n# Example:\nrobot.move_home()\ntime.sleep(1)\nrobot.grab()\n`;
-        })(),
+        value: getDefaultPythonCode(),
       });
       state.monacoReady = true;
       window.monacoEditor.onDidChangeModelContent(() => scheduleAutoSave());
@@ -711,6 +769,7 @@ const App = (() => {
       { id: 'magician',    icon: '🦾', name: 'Dobot Magician',       desc: 'Classic 4-axis robot arm with suction & claw' },
       { id: 'ai_starter',  icon: '🤖', name: 'Dobot AI Starter',     desc: 'AI-powered wheeled robot with camera' },
       { id: 'magician_ai', icon: '🧠', name: 'Dobot Magician + AI',  desc: 'Magician arm with AI camera kit' },
+      { id: 'vex_v5',      icon: '🎮', name: 'VEX V5 Robot',         desc: 'VEX V5 drivetrain, motors & sensors — program with VEX Python or Blocks' },
     ];
 
     const container = document.getElementById('robot-cards');
@@ -724,6 +783,38 @@ const App = (() => {
         ${state.selectedRobot === r.id ? '<span class="badge badge-blue" style="margin-top:8px;">✓ Selected</span>' : ''}
       </div>
     `).join('');
+
+    // Render debug mode toggle below robot cards
+    const debugContainer = document.getElementById('debug-mode-container');
+    if (debugContainer) {
+      debugContainer.innerHTML = `
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;">
+          <input type="checkbox" id="debug-mode-toggle" ${state.debugMode ? 'checked' : ''}
+            style="width:18px;height:18px;cursor:pointer;"
+            onchange="App.setDebugMode(this.checked)" />
+          <span>
+            <strong>🔍 Advanced Debug Mode</strong>
+            <span class="text-muted" style="display:block;font-size:12px;">
+              Enables verbose connection logging — use when troubleshooting COM port or communication errors.
+              Generated Python code will include <code>debug=True</code>.
+            </span>
+          </span>
+        </label>`;
+    }
+  };
+
+  const setDebugMode = (enabled) => {
+    state.debugMode = enabled;
+    localStorage.setItem('debug_mode', enabled ? '1' : '0');
+    toast(
+      enabled ? '🔍 Debug Mode On' : 'Debug Mode Off',
+      enabled ? 'Verbose logging enabled — generated code will use debug=True' : 'Standard mode',
+      'info', 3000
+    );
+    // Refresh default code in Monaco if no file is open
+    if (!state.currentFile && window.monacoEditor) {
+      window.monacoEditor.setValue(getDefaultPythonCode());
+    }
   };
 
   const selectRobot = (id) => {
@@ -735,13 +826,38 @@ const App = (() => {
     if (state.blocklyReady) {
       BlocklySetup.updateToolbox(id);
     }
+    // Update Python command panel visibility for VEX vs Dobot
+    updatePyCommandPanel(id);
+    // Refresh default code in Monaco if no file is open
+    if (!state.currentFile && window.monacoEditor) {
+      window.monacoEditor.setValue(getDefaultPythonCode());
+    }
     toast('Robot Selected', `Now coding for: ${id}`, 'success', 2000);
+  };
+
+  const updatePyCommandPanel = (robotType) => {
+    const panel = document.getElementById('py-command-panel');
+    if (!panel) return;
+    const vexSection = document.getElementById('py-cmd-vex-section');
+    const dobotSections = panel.querySelectorAll('.py-cmd-dobot-only');
+    if (robotType === 'vex_v5') {
+      dobotSections.forEach(el => el.classList.add('hidden'));
+      if (vexSection) vexSection.classList.remove('hidden');
+    } else {
+      dobotSections.forEach(el => el.classList.remove('hidden'));
+      if (vexSection) vexSection.classList.add('hidden');
+    }
   };
 
   const updateRobotStatus = () => {
     const label = document.getElementById('robot-status-label');
     const sub = document.getElementById('robot-status-sub');
-    const robots = { magician: 'Dobot Magician', ai_starter: 'Dobot AI Starter', magician_ai: 'Magician + AI' };
+    const robots = {
+      magician:    'Dobot Magician',
+      ai_starter:  'Dobot AI Starter',
+      magician_ai: 'Magician + AI',
+      vex_v5:      'VEX V5 Robot',
+    };
     if (label) label.textContent = robots[state.selectedRobot] || 'No Robot';
     if (sub) sub.textContent = 'Simulator Mode';
   };
@@ -784,6 +900,7 @@ const App = (() => {
     // Restore saved state
     state.role = localStorage.getItem('user_role') || 'student';
     state.selectedRobot = localStorage.getItem('selected_robot') || 'magician';
+    state.debugMode = localStorage.getItem('debug_mode') === '1';
 
     // Initialize auth
     initAuth();
@@ -892,8 +1009,10 @@ const App = (() => {
     openRepo,
     openFile,
     selectRobot,
+    setDebugMode,
     saveCurrentFile,
     refreshDashboard,
+    refreshTeacherDashboard,
     refreshRepositories,
     loadOrgRepos,
     generateAndSwitchToPython,

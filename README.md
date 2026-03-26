@@ -155,7 +155,11 @@ You should see:
 > **⏹ Stop:** Click the **Stop** button in the terminal header to terminate the program at any time.
 
 #### Browser compatibility note
-The browser connects to `ws://127.0.0.1:5000` (plain WebSocket) even if the IDE is served from an HTTPS host like GitHub Pages. Modern browsers (Chrome 94+, Firefox, Edge) allow this because `localhost` / `127.0.0.1` is treated as a *secure context*. The bridge server also sends `Access-Control-Allow-Private-Network: true` to satisfy Chrome's Private Network Access policy. **Safari** may require enabling the Develop → Disable Cross-Origin Restrictions setting.
+The bridge connects via `ws://127.0.0.1:5000` even when the IDE is served from an HTTPS host like GitHub Pages. Modern browsers permit this because `127.0.0.1` is treated as a *secure context*:
+
+- **Chrome 94+ / Edge**: Allowed. The bridge also sends `Access-Control-Allow-Private-Network: true` to satisfy Chrome's Private Network Access preflight.
+- **Firefox**: Allowed — no special action needed.
+- **Safari**: May block. Enable **Develop → Disable Cross-Origin Restrictions** in Safari's menu bar, or open the IDE locally over HTTP.
 
 ---
 

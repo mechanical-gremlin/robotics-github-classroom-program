@@ -607,11 +607,11 @@ const App = (() => {
   };
 
   /** Append a line to the bridge terminal output div. */
-  const bridgeLog = (text, cssColor) => {
+  const bridgeLog = (text, color) => {
     const out = document.getElementById('bridge-output');
     if (!out) return;
     const line = document.createElement('div');
-    line.style.color = cssColor || '#a0aec0';
+    line.style.color = color || '#a0aec0';
     line.style.whiteSpace = 'pre-wrap';
     line.style.wordBreak = 'break-word';
     line.textContent = text;
@@ -680,8 +680,8 @@ const App = (() => {
         }
       },
       onOutput: ({ stream, data }) => {
-        const colours = { stdout: '#e2e8f0', stderr: '#fc8181', info: '#63b3ed' };
-        bridgeLog(data.replace(/\n$/, ''), colours[stream] || '#a0aec0');
+        const colors = { stdout: '#e2e8f0', stderr: '#fc8181', info: '#63b3ed' };
+        bridgeLog(data.replace(/\n$/, ''), colors[stream] || '#a0aec0');
       },
       onDone: ({ returncode }) => {
         setBridgeRunning(false);

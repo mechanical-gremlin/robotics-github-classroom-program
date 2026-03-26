@@ -185,7 +185,7 @@ def on_stop_code():
     """Terminate the currently running subprocess."""
     _stop_running()
     emit('output', {'stream': 'info', 'data': '⏹ Stopped by user.\n'})
-    emit('done', {'returncode': -1})
+    emit('done', {'returncode': -15})    # -15 matches SIGTERM convention
 
 
 def _stop_running():
@@ -193,6 +193,10 @@ def _stop_running():
     with _proc_lock:
         if _running_proc and _running_proc.poll() is None:
             _running_proc.terminate()
+            try:
+                _running_proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                _running_proc.kill()
             _running_proc = None
 
 

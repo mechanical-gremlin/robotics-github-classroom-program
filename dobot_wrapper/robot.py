@@ -9,6 +9,7 @@ and test their programs.
 
 from __future__ import annotations
 
+import os
 import time
 import sys
 import threading
@@ -123,7 +124,13 @@ class DobotRobot:
                     self._log(f'🔌 Connecting to specified port: {port}')
                     detected_port = port
                 else:
-                    detected_port = self._detect_port()
+                    # Check if the bridge set a port via environment variable
+                    env_port = os.environ.get('DOBOT_DEFAULT_PORT', '').strip()
+                    if env_port:
+                        self._log(f'🔌 Using port from DOBOT_DEFAULT_PORT env: {env_port}')
+                        detected_port = env_port
+                    else:
+                        detected_port = self._detect_port()
                     if detected_port:
                         self._log(f'🔍 Auto-detected port: {detected_port}')
                 if detected_port:
@@ -369,10 +376,19 @@ class DobotRobot:
         if not self._sim and self._device:
             self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
 
-    def move_to(self, x: float, y: float, z: float):
-        """Move the arm to exact coordinates (x, y, z in mm)."""
+    def move_to(self, x: float, y: float, z: float, r: float = None):
+        """Move the arm to exact coordinates (x, y, z in mm; r in degrees).
+
+        Args:
+            x: Target X coordinate (mm).
+            y: Target Y coordinate (mm).
+            z: Target Z coordinate (mm).
+            r: End-effector rotation (degrees). Defaults to current rotation.
+        """
         self._check_emergency()
-        self._sim_log(f'move_to({x}, {y}, {z})')
+        if r is not None:
+            self._r = float(r)
+        self._sim_log(f'move_to({x}, {y}, {z}, r={r if r is not None else self._r})')
         self._x, self._y, self._z = float(x), float(y), float(z)
         self._check_bounds()
         if not self._sim and self._device:

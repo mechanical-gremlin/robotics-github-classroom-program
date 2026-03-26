@@ -139,11 +139,12 @@ const BlocklySetup = (() => {
         this.appendValueInput('X').setCheck('Number').appendField('X:');
         this.appendValueInput('Y').setCheck('Number').appendField('Y:');
         this.appendValueInput('Z').setCheck('Number').appendField('Z:');
+        this.appendValueInput('R').setCheck('Number').appendField('R:');
         this.setInputsInline(true);
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
         this.setColour(COLORS.movement);
-        this.setTooltip('Move the robot arm to exact X, Y, Z coordinates.');
+        this.setTooltip('Move the robot arm to exact X, Y, Z coordinates with end-effector rotation R (degrees).');
       }
     };
 
@@ -921,7 +922,8 @@ const BlocklySetup = (() => {
       const x = P.valueToCode(b, 'X', P.ORDER_NONE) || 0;
       const y = P.valueToCode(b, 'Y', P.ORDER_NONE) || 0;
       const z = P.valueToCode(b, 'Z', P.ORDER_NONE) || 0;
-      return `robot.move_to(${x}, ${y}, ${z})\n`;
+      const r = P.valueToCode(b, 'R', P.ORDER_NONE) || 0;
+      return `robot.move_to(${x}, ${y}, ${z}, ${r})\n`;
     };
     P['dobot_set_joint_angles'] = (b) => {
       const j1 = P.valueToCode(b, 'J1', P.ORDER_NONE) || 0;
@@ -1480,7 +1482,7 @@ const BlocklySetup = (() => {
           code,
         ].join('\n');
       }
-      return `# Auto-generated Python code from Blockly blocks\nimport time\nfrom dobot_wrapper import DobotRobot\n\nrobot = DobotRobot()\n\n${code}`;
+      return `# Auto-generated Python code from Blockly blocks\nimport time\nfrom dobot_wrapper import DobotRobot\n\n# Change the port to match your robot's COM port (check Device Manager)\nrobot = DobotRobot(port='${localStorage.getItem('robot_port') || 'COM3'}')\n\n${code}`;
     } catch (e) {
       return `# Could not generate Python code: ${e.message}`;
     }

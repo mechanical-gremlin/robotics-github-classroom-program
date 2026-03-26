@@ -256,13 +256,12 @@
         <span id="current-file-name" style="font-weight:600;color:#1e293b;">No file open</span>
         <div style="flex:1"></div>
         <button id="new-file-btn" class="btn btn-outline btn-sm">➕ New File</button>
-        <button id="generate-python-btn" class="btn btn-outline btn-sm">🐍 Generate Python</button>
-        <button id="run-simulator-btn" class="btn btn-success btn-sm">▶ Run</button>
+        <button id="run-simulator-btn" class="btn btn-success btn-sm" title="Run program (uses simulator when bridge is not connected; runs on robot when connected)">▶ Run</button>
         <button id="stop-simulator-btn" class="btn btn-danger btn-sm">⏹ Stop</button>
+        <button id="home-robot-btn" class="btn btn-outline btn-sm" title="Move robot to home position">🏠 Home</button>
         <button id="emergency-stop-btn" class="btn btn-sm" style="background:#dc2626;color:white;font-weight:700;border:2px solid #991b1b;" title="Emergency Stop (Escape key)">🛑 E-STOP</button>
         <div style="width:1px;background:#e2e8f0;height:20px;margin:0 2px;flex-shrink:0;"></div>
         <button id="bridge-connect-btn" class="btn btn-outline btn-sm" title="Connect to the Local Python Bridge running on your computer to run code on a real robot">🔌 Connect to Bridge</button>
-        <button id="bridge-run-btn" class="btn btn-success btn-sm hidden" title="Send the current Python code to the Local Bridge to execute on the robot">🤖 Run on Robot</button>
         <button id="reset-simulator-btn" class="btn btn-outline btn-sm">↺ Reset</button>
         <button id="save-btn-editor" class="btn btn-primary btn-sm" onclick="App.saveCurrentFile()">💾 Save</button>
       </div>
@@ -917,6 +916,11 @@ robot = DobotRobot(port='COM3')  # connect to your port</pre>
       if (typeof RobotSimulator !== 'undefined') {
         RobotSimulator.stop();
         RobotSimulator.commands.emergency_stop?.();
+      }
+      // Also stop any bridge execution
+      if (typeof LocalBridge !== 'undefined' && LocalBridge.isConnected()) {
+        LocalBridge.stopCode();
+        if (typeof App !== 'undefined') App.setBridgeRunning?.(false);
       }
       // Flash screen border red
       document.body.style.outline = '4px solid #dc2626';

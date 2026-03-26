@@ -398,6 +398,7 @@ const App = (() => {
   };
 
   const showEditorTab = (tab) => {
+    const previousEditorMode = state.editorMode;
     state.editorMode = tab;
     document.querySelectorAll('.editor-tab').forEach(t => t.classList.remove('active'));
     document.getElementById(`tab-${tab}`)?.classList.add('active');
@@ -407,6 +408,36 @@ const App = (() => {
 
     if (tab === 'blockly') initBlockly();
     if (tab === 'python' && !state.monacoReady) initMonaco();
+    if (tab === 'python') {
+      // Auto-generate Python from Blockly or Event Sheet when switching to Python tab
+      setTimeout(() => {
+        const currentCode = window.monacoEditor
+          ? window.monacoEditor.getValue()
+          : (document.getElementById('py-textarea')?.value || '');
+        // Only auto-fill if the editor is empty or contains only the default boilerplate
+        const isDefault = !currentCode.trim() ||
+          currentCode.trim().startsWith('# Write your Dobot') ||
+          currentCode.trim().startsWith('# Auto-generated') ||
+          currentCode.trim().startsWith('# VEX V5 Python');
+        if (isDefault) {
+          let generated = '';
+          if (previousEditorMode === 'blockly' && state.blocklyReady) {
+            generated = BlocklySetup.getPythonCode();
+          } else if (previousEditorMode === 'eventsheet') {
+            generated = EventSheet.toPython();
+          } else {
+            generated = getDefaultPythonCode();
+          }
+          if (generated) {
+            if (window.monacoEditor) window.monacoEditor.setValue(generated);
+            else {
+              const ta = document.getElementById('py-textarea');
+              if (ta) ta.value = generated;
+            }
+          }
+        }
+      }, 150);
+    }
     if (tab === 'eventsheet') {
       EventSheet.init('event-sheet-container', () => scheduleAutoSave());
     }
@@ -562,7 +593,25 @@ const App = (() => {
   };
 
   const runInSimulator = () => {
-    // Build command list from current editor
+    // If bridge is connected, route all run requests to the real robot
+    if (LocalBridge.isConnected()) {
+      runOnRobot();
+      return;
+    }
+
+    // Not connected to bridge — Python mode requires the bridge
+    if (state.editorMode === 'python') {
+      toast(
+        'Bridge Required',
+        'Connect to the Python Bridge to run Python code on a real robot. ' +
+        'Click "🔌 Connect to Bridge" and make sure bridge.py is running.',
+        'warning',
+        6000
+      );
+      return;
+    }
+
+    // Build command list from Blockly or Event Sheet for the simulator
     let commands = [];
     if (state.editorMode === 'blockly' && state.blocklyReady) {
       // Parse from Blockly workspace (simplified simulation)
@@ -581,7 +630,7 @@ const App = (() => {
       });
     }
     if (commands.length === 0) {
-      toast('Nothing to Run', 'Add some blocks or events first!', 'warning');
+      toast('Nothing to Run', 'Add some blocks or events, or connect the Bridge to run Python.', 'warning');
       return;
     }
     RobotSimulator.execute(commands);
@@ -622,7 +671,7 @@ const App = (() => {
   /** Update the bridge connect button and terminal panel to reflect the current connection state. */
   const updateBridgeUI = (connected) => {
     const connectBtn = document.getElementById('bridge-connect-btn');
-    const runBtn     = document.getElementById('bridge-run-btn');
+    const runBtn     = document.getElementById('run-simulator-btn');
     const panel      = document.getElementById('bridge-terminal-panel');
     if (connectBtn) {
       connectBtn.textContent = connected ? '🔌 Bridge Connected' : '🔌 Connect to Bridge';
@@ -630,8 +679,13 @@ const App = (() => {
       connectBtn.style.color         = connected ? 'white'   : '';
       connectBtn.style.borderColor   = connected ? '#059669' : '';
     }
-    if (runBtn)  runBtn.classList.toggle('hidden', !connected);
-    if (panel)   panel.classList.toggle('hidden', !connected);
+    if (runBtn) {
+      runBtn.textContent = connected ? '▶ Run on Robot' : '▶ Run';
+      runBtn.title = connected
+        ? 'Send code to the connected robot via the Python Bridge'
+        : 'Run program (uses simulator; connect Bridge to run on real robot)';
+    }
+    if (panel) panel.classList.toggle('hidden', !connected);
   };
 
   /** Mark a run as in-progress / finished in the terminal header. */
@@ -639,7 +693,7 @@ const App = (() => {
     state.bridgeRunning = running;
     const statusEl  = document.getElementById('bridge-run-status');
     const stopBtn   = document.getElementById('bridge-stop-code-btn');
-    const runBtn    = document.getElementById('bridge-run-btn');
+    const runBtn    = document.getElementById('run-simulator-btn');
     if (statusEl) statusEl.textContent = running ? '● Running…' : '';
     if (statusEl) statusEl.style.color = running ? '#68d391' : '#64748b';
     if (stopBtn)  stopBtn.classList.toggle('hidden', !running);
@@ -662,7 +716,7 @@ const App = (() => {
         if (connected) {
           updateBridgeUI(true);
           if (message) bridgeLog(`[bridge] ${message}`, '#63b3ed');
-          toast('Bridge Connected', 'Local bridge is ready. Click "Run on Robot" to execute code.', 'success');
+          toast('Bridge Connected', 'Local bridge is ready. Click "▶ Run on Robot" to execute code.', 'success');
         } else {
           updateBridgeUI(false);
           setBridgeRunning(false);
@@ -1174,21 +1228,25 @@ const App = (() => {
       saveCurrentFile(msg);
     });
 
-    // Generate Python button
-    document.getElementById('generate-python-btn')?.addEventListener('click', generateAndSwitchToPython);
+    // (Generate Python is now automatic when switching to the Python tab)
 
     // Run in simulator
     document.getElementById('run-simulator-btn')?.addEventListener('click', runInSimulator);
     document.getElementById('stop-simulator-btn')?.addEventListener('click', () => RobotSimulator.stop());
+    // Emergency stop also terminates any running bridge code
     document.getElementById('emergency-stop-btn')?.addEventListener('click', () => {
       RobotSimulator.stop();
       RobotSimulator.commands.emergency_stop?.();
+      if (LocalBridge.isConnected()) {
+        LocalBridge.stopCode();
+        setBridgeRunning(false);
+        bridgeLog('🛑 Emergency stop triggered.', '#fc8181');
+      }
     });
     document.getElementById('reset-simulator-btn')?.addEventListener('click', () => RobotSimulator.reset());
 
     // Local Bridge buttons
     document.getElementById('bridge-connect-btn')?.addEventListener('click', toggleBridgeConnection);
-    document.getElementById('bridge-run-btn')?.addEventListener('click', runOnRobot);
     document.getElementById('bridge-stop-code-btn')?.addEventListener('click', () => {
       LocalBridge.stopCode();
       setBridgeRunning(false);
@@ -1205,6 +1263,44 @@ const App = (() => {
 
     // Simulator init
     RobotSimulator.init('robot-canvas');
+
+    // D-pad jog: when bridge is connected, also send the jog command to the real robot.
+    // RobotSimulator already handles the simulator side via its own click listeners.
+    const JOG_HORIZONTAL_MM = 15; // mm to jog in X/Y directions
+    const JOG_VERTICAL_MM   = 10; // mm to jog in Z direction
+    const jogBridgeCommand = (pythonCmd) => {
+      if (!LocalBridge.isConnected() || state.bridgeRunning) return;
+      const port = localStorage.getItem('robot_port') || 'COM3';
+      const code = [
+        'from dobot_wrapper import DobotRobot',
+        `robot = DobotRobot(port='${port}')`,
+        pythonCmd,
+      ].join('\n');
+      setBridgeRunning(true);
+      const out = document.getElementById('bridge-output');
+      if (out) out.innerHTML = '';
+      try {
+        LocalBridge.runCode(code, port);
+      } catch (e) {
+        setBridgeRunning(false);
+        toast('Jog Error', e.message, 'error');
+      }
+    };
+    // Home button on toolbar
+    document.getElementById('home-robot-btn')?.addEventListener('click', () => {
+      RobotSimulator.execute([{ type: 'move_home', args: [] }]);
+      jogBridgeCommand('robot.move_home()');
+    });
+    // D-pad jog listeners (supplemental — simulator fires its own listener too)
+    document.getElementById('dpad-up')?.addEventListener('click',    () => jogBridgeCommand(`robot.move_forward(${JOG_HORIZONTAL_MM})`));
+    document.getElementById('dpad-down')?.addEventListener('click',  () => jogBridgeCommand(`robot.move_backward(${JOG_HORIZONTAL_MM})`));
+    document.getElementById('dpad-left')?.addEventListener('click',  () => jogBridgeCommand(`robot.move_left(${JOG_HORIZONTAL_MM})`));
+    document.getElementById('dpad-right')?.addEventListener('click', () => jogBridgeCommand(`robot.move_right(${JOG_HORIZONTAL_MM})`));
+    document.getElementById('dpad-up2')?.addEventListener('click',   () => jogBridgeCommand(`robot.move_up(${JOG_VERTICAL_MM})`));
+    document.getElementById('dpad-down2')?.addEventListener('click', () => jogBridgeCommand(`robot.move_down(${JOG_VERTICAL_MM})`));
+    document.getElementById('dpad-home')?.addEventListener('click',  () => jogBridgeCommand('robot.move_home()'));
+    document.getElementById('btn-grab')?.addEventListener('click',   () => jogBridgeCommand('robot.grab()'));
+    document.getElementById('btn-release')?.addEventListener('click',() => jogBridgeCommand('robot.release()'));
 
     // Settings
     document.getElementById('settings-link')?.addEventListener('click', () => {
@@ -1258,6 +1354,7 @@ const App = (() => {
     openFile,
     selectRobot,
     setDebugMode,
+    toggleDebugMode,
     saveCurrentFile,
     refreshDashboard,
     refreshTeacherDashboard,
@@ -1266,6 +1363,7 @@ const App = (() => {
     generateAndSwitchToPython,
     toggleBridgeConnection,
     runOnRobot,
+    setBridgeRunning,
   };
 })();
 

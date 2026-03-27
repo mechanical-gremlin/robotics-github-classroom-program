@@ -111,10 +111,19 @@ def on_run_code(data):
         emit('done', {'returncode': 1})
         return
 
+    # Directory where bridge.py (and dobot_wrapper/) lives.  We add it to
+    # PYTHONPATH so the subprocess can ``from dobot_wrapper import …`` even
+    # though the temp script is written to the OS temp directory.
+    bridge_dir = os.path.dirname(os.path.abspath(__file__))
+
     # Pass the configured serial port to the child process via the environment
     # so dobot_wrapper can find it without the user having to edit the code.
     env = os.environ.copy()
     env['DOBOT_DEFAULT_PORT'] = port
+
+    # Prepend the bridge directory so dobot_wrapper is importable.
+    existing = env.get('PYTHONPATH', '')
+    env['PYTHONPATH'] = bridge_dir + (os.pathsep + existing if existing else '')
 
     # Write code to a temp file instead of using -c to avoid quoting problems
     # with multi-line code and to give the subprocess a proper __file__ path.
@@ -142,6 +151,7 @@ def on_run_code(data):
                 stderr=subprocess.PIPE,
                 text=True,
                 env=env,
+                cwd=bridge_dir,
             )
             with _proc_lock:
                 _running_proc = proc
